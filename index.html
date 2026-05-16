@@ -4,11 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ইমরান ক্লথ স্টোর</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700;800&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700;800&family=Playfair+Display:wght@700;800;900&display=swap&font-display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" defer></script>
   <style>
 
     /* ═══════════════════════════════
@@ -65,6 +68,7 @@
       min-height: 100vh;
       position: relative;
       overflow-x: hidden;
+      isolation: isolate;
       /* ── Seamless dark wood furniture background ── */
       background-color: #1e1008;
       background-image:
@@ -108,7 +112,7 @@
     /* Raking light sheen — highlights raised grain */
     body::before {
       content: '';
-      position: absolute;
+      position: fixed;
       inset: 0;
       pointer-events: none;
       z-index: 0;
@@ -146,6 +150,7 @@
       position: sticky;
       top: 0;
       z-index: 200;
+      contain: layout style paint;
       box-shadow:
         0 6px 28px rgba(0,0,0,0.70),
         0 1px 0 rgba(240,190,70,0.50) inset,
@@ -510,6 +515,7 @@
       /* Brass inlay double border */
       outline: 1px solid rgba(200,150,30,0.55);
       outline-offset: 2px;
+      contain: layout style;
     }
     .home-card:active { transform: scale(.97); }
 
@@ -679,6 +685,7 @@
           rgba(200,160,60,0.4) 300deg 330deg, transparent 330deg 360deg
         );
       animation: rotateAura 8s linear infinite;
+      will-change: transform;
     }
     @keyframes rotateAura {
       from { transform: rotate(0deg); }
@@ -780,13 +787,15 @@
       top: 0; right: 0;
       width: 280px;
       height: 100vh;
-      border-left: 2px solid rgba(200,150,30,0.55);
-      box-shadow: -12px 0 40px rgba(0,0,0,.80), -1px 0 0 rgba(220,170,50,0.15) inset;
+      border-left: 2px solid rgba(200,150,30,0.45);
+      box-shadow: -12px 0 40px rgba(0,0,0,.55);
       z-index: 600;
       display: flex;
       flex-direction: column;
       transform: translateX(100%);
       transition: transform .26s cubic-bezier(.2,.8,.3,1);
+      background-color: #f2ece0 !important;
+      background-image: none !important;
     }
     .side-menu.open { transform: translateX(0); }
 
@@ -796,32 +805,36 @@
       justify-content: space-between;
       padding: 18px 20px;
       position: relative;
+      background: linear-gradient(180deg, #ede6d6 0%, #f2ece0 100%);
+      border-bottom: 1px solid rgba(184,144,42,.22);
     }
     .side-menu-head::after {
       content: '';
       position: absolute;
-      left: 12px; right: 12px; bottom: 0;
+      left: 12px; right: 12px; bottom: -1px;
       height: 1px;
       background: linear-gradient(90deg,
         transparent 0%,
-        rgba(0,0,0,0.75) 20%,
-        rgba(0,0,0,0.85) 50%,
-        rgba(0,0,0,0.75) 80%,
+        rgba(184,144,42,0.30) 20%,
+        rgba(184,144,42,0.45) 50%,
+        rgba(184,144,42,0.30) 80%,
         transparent 100%
       );
-      box-shadow: 0 1px 0 rgba(255,210,80,0.15);
     }
     .side-menu-title {
       font-size: 16px; font-weight: 800; letter-spacing: .4px;
-    } /* color+shadow from .text-engraved */
+      color: #3a2810;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.70), 0 -1px 0 rgba(0,0,0,0.12);
+    }
     .menu-close-btn {
       width: 30px; height: 30px;
-      border-radius: 0; border: none; background: none;
-      color: rgba(60,32,8,0.92); font-size: 18px;
+      border-radius: 8px; border: 1px solid rgba(184,144,42,.30);
+      background: rgba(184,144,42,.10);
+      color: #7a5820; font-size: 18px;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: transform .18s;
+      transition: background .18s, transform .18s;
     }
-    .menu-close-btn:hover { transform: scale(1.15); }
+    .menu-close-btn:hover { background: rgba(184,144,42,.20); transform: scale(1.15); }
 
     /* ══ UTILITY CLASSES ══ */
     /* menu/header icon engraving */
@@ -848,22 +861,6 @@
         1px 0 0 rgba(0,0,0,0.60),
         -1px 0 0 rgba(255,200,60,0.12);
     }
-    /* খোদাই filter — header/menu icons ও text */
-    .engrave-filter {
-      filter:
-        drop-shadow(0 1px 0 rgba(255,210,80,0.18))
-        drop-shadow(0 -1px 0 rgba(0,0,0,0.85))
-        drop-shadow(1px 0 0 rgba(0,0,0,0.60))
-        drop-shadow(-1px 0 0 rgba(255,200,60,0.12));
-    }
-    /* আইকন ইনার শ্যাডো — card medallion */
-    .icon-shadow {
-      box-shadow:
-        3px 3px 10px rgba(0,0,0,0.7),
-        -2px -2px 6px rgba(240,180,80,0.2) inset,
-        2px 2px 6px rgba(0,0,0,0.5) inset;
-    }
-
     .side-menu-body {
       padding: 14px 12px;
       display: flex;
@@ -889,7 +886,6 @@
       transition: background .18s;
       position: relative;
     }
-    /* খোদাই বর্ডার — উপরে আলো, নিচে অন্ধকার */
     .menu-item::after {
       content: '';
       position: absolute;
@@ -897,29 +893,27 @@
       height: 1px;
       background: linear-gradient(90deg,
         transparent 0%,
-        rgba(0,0,0,0.70) 20%,
-        rgba(0,0,0,0.80) 50%,
-        rgba(0,0,0,0.70) 80%,
+        rgba(184,144,42,0.20) 20%,
+        rgba(184,144,42,0.30) 50%,
+        rgba(184,144,42,0.20) 80%,
         transparent 100%
       );
-      box-shadow: 0 1px 0 rgba(255,210,80,0.13);
     }
     .menu-item:last-child::after { display: none; }
-    .menu-item:hover { background: rgba(255,200,80,0.06); }
+    .menu-item:hover { background: rgba(184,144,42,.10); border-radius: 8px; }
     .menu-item-icon {
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
     .menu-item-label {
       font-size: 14px; font-weight: 700; line-height: 1.3;
-    } /* color+shadow from .text-engraved */
+      color: #3a2810;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.60);
+    }
     .menu-item-sub {
       font-size: 10px;
-      color: rgba(60,32,8,0.60);
+      color: #9a7848;
       margin-top: 2px;
-      text-shadow:
-        0 1px 0 rgba(255,210,80,0.15),
-        0 -1px 0 rgba(0,0,0,0.70);
     }
 
     /* ═══════════════════════════════
@@ -946,6 +940,7 @@
       z-index: 700;
       align-items: flex-end;
       justify-content: center;
+      contain: layout style paint;
     }
     .ep-overlay.open { display: flex; }
 
@@ -1008,6 +1003,7 @@
       -webkit-overflow-scrolling: touch;
       padding: 14px 16px 24px;
       display: flex; flex-direction: column; gap: 12px;
+      overscroll-behavior: contain;
     }
     .ep-body::-webkit-scrollbar { width: 4px; }
     .ep-body::-webkit-scrollbar-track { background: transparent; }
@@ -1133,9 +1129,13 @@
     }
     .ep-save-btn:hover { background: #f0cc70; }
 
-    /* fvScreen open থাকলে হোম কার্ড অ্যানিমেশন pause — GPU লোড কমায় */
+    /* যেকোনো fullscreen খোলা থাকলে home card animation pause — GPU লোড কমায় */
     .fv-screen.open ~ .main .icon-medallion::before,
-    body:has(.fv-screen.open) .icon-medallion::before {
+    body:has(.fv-screen.open) .icon-medallion::before,
+    body:has(.dl-screen.open) .icon-medallion::before,
+    body:has(.fv-detail-screen.open) .icon-medallion::before,
+    body:has(.ep-overlay.open) .icon-medallion::before,
+    body:has(.screen-lock-overlay.active) .icon-medallion::before {
       animation-play-state: paused;
     }
 
@@ -1152,6 +1152,7 @@
       will-change: auto;
       pointer-events: none;
       visibility: hidden;
+      contain: layout style paint;
     }
     .fv-screen.open {
       transform: translateX(0);
@@ -1236,6 +1237,7 @@
       padding: 10px 12px 30px;
       display: flex; flex-direction: column; gap: 8px;
       scroll-behavior: auto;
+      overscroll-behavior: contain;
     }
     /* স্ক্রলবার স্টাইল */
     .fv-body::-webkit-scrollbar { width: 4px; }
@@ -1254,6 +1256,7 @@
       box-shadow: 0 2px 8px rgba(0,0,0,.10);
       transition: border-color .15s;
       flex-shrink: 0;
+      contain: layout style;
     }
     .fv-card:hover { border-color: #a89880; }
     .fv-card-top {
@@ -1323,6 +1326,7 @@
       will-change: auto;
       pointer-events: none;
       visibility: hidden;
+      contain: layout style paint;
     }
     .dl-screen.open {
       transform: translateX(0);
@@ -1421,6 +1425,7 @@
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       scroll-behavior: auto;
+      overscroll-behavior: contain;
     }
     .dl-table-wrap::-webkit-scrollbar { width: 4px; height: 4px; }
     .dl-table-wrap::-webkit-scrollbar-track { background: transparent; }
@@ -1448,6 +1453,7 @@
       align-items: center;
       justify-content: center;
       padding: 20px;
+      contain: layout style paint;
     }
     .fv-edit-modal-overlay.open { display: flex; }
     .fv-edit-modal {
@@ -1621,6 +1627,7 @@
       will-change: auto;
       pointer-events: none;
       visibility: hidden;
+      contain: layout style paint;
     }
     .fv-detail-screen.open {
       transform: translateX(0);
@@ -1628,11 +1635,6 @@
       visibility: visible;
       will-change: transform;
     }
-    @keyframes fvDetailSlide {
-      from { transform: translateX(100%); opacity: 0; }
-      to   { transform: translateX(0);    opacity: 1; }
-    }
-
     .fv-detail-header {
       background: #ede0c4;
       border-bottom: 1px solid #cec6b4;
@@ -1799,6 +1801,7 @@
       min-height: 0;
       -webkit-overflow-scrolling: touch;
       scroll-behavior: auto;
+      overscroll-behavior: contain;
     }
     .fv-excel thead tr { background: #1a3828; }
     .fv-excel thead th {
@@ -1866,18 +1869,88 @@
     }
     .fv-card-del-btn:hover { background: rgba(200,60,60,.22); transform: scale(1.08); }
 
+    /* ══════════════════════════════════════
+       এডিট মোড বাটন ও সেল স্টাইল
+    ══════════════════════════════════════ */
+    .tbl-edit-mode-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; padding: 0; border-radius: 8px;
+      border: 1.5px solid rgba(184,144,42,.45);
+      background: rgba(184,144,42,.12);
+      color: #8a6010;
+      cursor: pointer;
+      transition: background .15s, border-color .15s, color .15s;
+      flex-shrink: 0;
+    }
+    .tbl-edit-mode-btn:hover {
+      background: rgba(184,144,42,.22);
+      border-color: rgba(184,144,42,.7);
+      color: #5a3a00;
+    }
+    .tbl-edit-mode-btn.active {
+      background: linear-gradient(135deg, #e0b84a, #c89820);
+      border-color: #b88010;
+      color: #1a0f06;
+      box-shadow: 0 2px 8px rgba(184,144,42,.35);
+    }
+    /* এডিট মোডে সেল ইনপুট */
+    .fv-excel.edit-mode tbody td.editable-cell {
+      padding: 2px 3px;
+      cursor: text;
+    }
+    .fv-excel.edit-mode tbody td.editable-cell input.cell-input {
+      font-family: 'Noto Sans Bengali', sans-serif;
+      width: 100%; min-width: 60px;
+      padding: 4px 6px;
+      border: 1.5px solid rgba(184,144,42,.5);
+      border-radius: 5px;
+      background: rgba(255,250,235,.95);
+      color: #2c1e0a;
+      font-size: 11px; font-weight: 600;
+      outline: none;
+      text-align: inherit;
+    }
+    .fv-excel.edit-mode tbody td.editable-cell input.cell-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(184,144,42,.18);
+      background: #fff;
+    }
+    /* এডিট মোডে সেভ বাটন */
+    .tbl-edit-save-btn {
+      font-family: 'Noto Sans Bengali', sans-serif;
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 13px; border-radius: 8px;
+      border: 1.5px solid rgba(26,92,53,.5);
+      background: rgba(26,92,53,.12);
+      color: #1a5c35;
+      font-size: 11px; font-weight: 700;
+      cursor: pointer;
+      transition: background .15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .tbl-edit-save-btn:hover {
+      background: rgba(26,92,53,.22);
+    }
+
+    /* ── সাইড মেনু — off-white context overrides ── */
+    .side-menu .text-engraved {
+      color: #3a2810;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.60), 0 -1px 0 rgba(0,0,0,0.08);
+    }
+    .side-menu .side-menu-body { background: #f2ece0; }
+
     /* মেনু বিভাজক */
     .menu-divider {
       height: 1px;
       margin: 2px 10px;
       background: linear-gradient(90deg,
         transparent 0%,
-        rgba(0,0,0,0.60) 25%,
-        rgba(0,0,0,0.75) 50%,
-        rgba(0,0,0,0.60) 75%,
+        rgba(184,144,42,0.25) 25%,
+        rgba(184,144,42,0.40) 50%,
+        rgba(184,144,42,0.25) 75%,
         transparent 100%
       );
-      box-shadow: 0 1px 0 rgba(255,210,80,0.12);
     }
 
     /* ═══════════════════════════════
@@ -2528,7 +2601,7 @@
       </button>
     </div>
     <div class="fv-search-wrap">
-      <input class="fv-search" id="fvSearch" type="text" placeholder="নাম বা ঠিকানা খুঁজুন..." oninput="fvFilterRender()">
+      <input class="fv-search" id="fvSearch" type="text" placeholder="নাম বা ঠিকানা খুঁজুন..." oninput="_fvSearchDebounced()">
     </div>
   </div>
 
@@ -2590,7 +2663,7 @@
 
     <!-- সার্চ -->
     <div class="dl-search-wrap">
-      <input class="dl-search" id="dlSearch" type="search" placeholder="নাম বা ঠিকানা খুঁজুন…" oninput="dlRender()">
+      <input class="dl-search" id="dlSearch" type="search" placeholder="নাম বা ঠিকানা খুঁজুন…" oninput="_dlSearchDebounced()">
     </div>
   </div>
 
@@ -2607,6 +2680,9 @@
         <span class="dl-foot-lbl">মোট বকেয়া</span>
         <span class="dl-foot-val" id="dlFootBokea">৳০</span>
       </div>
+      <button class="tbl-edit-mode-btn" id="dlEditModeBtn" onclick="dlToggleEditMode(this)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
     </div>
   </div>
 
@@ -2718,7 +2794,7 @@
      SIDE MENU
 ══════════════════════════════════════ -->
 <div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
-<nav class="side-menu wood-panel-bg" id="sideMenu">
+<nav class="side-menu" id="sideMenu">
   <div class="side-menu-head">
     <div class="side-menu-title text-engraved">মেনু</div>
     <button class="menu-close-btn" onclick="closeMenu()">✕</button>
@@ -2727,7 +2803,7 @@
 
     <button class="menu-item" onclick="epOpen(1);closeMenu()">
       <span class="menu-item-icon">
-        <i class="fas fa-users" style="font-size:18px;color:rgba(60,32,8,0.88)" class="engrave-filter"></i>
+        <i class="fas fa-users" style="font-size:18px;color:#b07828" class="engrave-filter"></i>
       </span>
       <div>
         <div class="menu-item-label text-engraved">রেগুলার কাস্টমার এন্ট্রি</div>
@@ -2737,7 +2813,7 @@
 
     <button class="menu-item" onclick="epOpen(2);closeMenu()">
       <span class="menu-item-icon">
-        <i class="fas fa-user-minus" style="font-size:18px;color:rgba(60,32,8,0.88)" class="engrave-filter"></i>
+        <i class="fas fa-user-minus" style="font-size:18px;color:#b07828" class="engrave-filter"></i>
       </span>
       <div>
         <div class="menu-item-label text-engraved">ইর-রেগুলার কাস্টমার এন্ট্রি</div>
@@ -2747,7 +2823,7 @@
 
     <button class="menu-item" onclick="epOpen(3);closeMenu()">
       <span class="menu-item-icon">
-        <i class="fas fa-truck" style="font-size:18px;color:rgba(60,32,8,0.88)" class="engrave-filter"></i>
+        <i class="fas fa-truck" style="font-size:18px;color:#b07828" class="engrave-filter"></i>
       </span>
       <div>
         <div class="menu-item-label text-engraved">রেগুলার মহাজন এন্ট্রি</div>
@@ -2757,7 +2833,7 @@
 
     <button class="menu-item" onclick="epOpen(4);closeMenu()">
       <span class="menu-item-icon">
-        <i class="fas fa-truck-loading" style="font-size:18px;color:rgba(60,32,8,0.88)" class="engrave-filter"></i>
+        <i class="fas fa-truck-loading" style="font-size:18px;color:#b07828" class="engrave-filter"></i>
       </span>
       <div>
         <div class="menu-item-label text-engraved">ইর-রেগুলার মহাজন এন্ট্রি</div>
@@ -2767,7 +2843,7 @@
 
     <button class="menu-item" onclick="dlOpen();closeMenu()">
       <span class="menu-item-icon">
-        <i class="fas fa-list-alt" style="font-size:18px;color:rgba(60,32,8,0.88)"></i>
+        <i class="fas fa-list-alt" style="font-size:18px;color:#b07828"></i>
       </span>
       <div>
         <div class="menu-item-label text-engraved">Party Ledger</div>
@@ -2777,7 +2853,7 @@
 
     <button class="menu-item" onclick="appLockOpen();closeMenu()">
       <span class="menu-item-icon">
-        <i class="fas fa-lock" style="font-size:18px;color:rgba(60,32,8,0.88)" class="engrave-filter"></i>
+        <i class="fas fa-lock" style="font-size:18px;color:#b07828" class="engrave-filter"></i>
       </span>
       <div>
         <div class="menu-item-label text-engraved">অ্যাপ লক</div>
@@ -2787,7 +2863,7 @@
 
     <button class="menu-item" onclick="dbConnectOpen();closeMenu()">
       <span class="menu-item-icon">
-        <i class="fas fa-database" style="font-size:18px;color:rgba(60,32,8,0.88)" class="engrave-filter"></i>
+        <i class="fas fa-database" style="font-size:18px;color:#b07828" class="engrave-filter"></i>
       </span>
       <div>
         <div class="menu-item-label text-engraved">ডাটাবেইজ সংযোগ</div>
@@ -2923,6 +2999,15 @@
      JAVASCRIPT
 ══════════════════════════════════════ -->
 <script>
+
+  /* ── debounce utility ── */
+  function _debounce(fn, ms) {
+    var t;
+    return function() {
+      clearTimeout(t);
+      t = setTimeout(fn, ms);
+    };
+  }
 
   /* ── মেনু toggle ── */
   function toggleMenu() {
@@ -3178,9 +3263,6 @@
     var inp = document.getElementById('alPinInput');
     if (inp) { inp.value=''; inp.focus(); }
   }
-  /* dots রিসেট হেল্পার (এখন _alPinDone ব্যবহার করে) */
-  function _alPinDel() { /* no-op — ডিভাইস কীবোর্ডেই ব্যাকস্পেস কাজ করে */ }
-  function _alPinPress(d, ctx) { /* no-op — শুধু পুরনো কলের জন্য রেখেছি */ }
   function _alPinDone(ctx) {
     var err = document.getElementById('alPinErr');
     function _resetInput(){
@@ -3493,9 +3575,6 @@
       },180);
     }
   }
-  function pinInput(digit) { /* no-op — ডিভাইস কীবোর্ড ব্যবহার হচ্ছে */ }
-  function pinDelete() { /* no-op — ডিভাইস কীবোর্ড ব্যবহার হচ্ছে */ }
-
   /* ── প্যাটার্ন স্ক্রিন লক ── */
   function _slInitPattern() {
     var canvas=document.getElementById('slPatternCanvas');
@@ -3601,7 +3680,6 @@
     }
   })();
 
-  /* ── ডাটাবেইজ সংযোগ স্টাব ── */
   /* ══════════════════════════════════════
      নোটিফিকেশন সিস্টেম
   ══════════════════════════════════════ */
@@ -3743,6 +3821,7 @@
             const local  = localStorage.getItem(k) || '[]';
             if (remote !== local) {
               localStorage.setItem(k, remote);
+              _lsClear(k);
               changed = true;
             }
           });
@@ -3968,11 +4047,21 @@
     }
   });
 
-  function toBnDigit(n) { return '০১২৩৪৫৬৭৮৯'[n]; }
-
   /* ════════════════════════════════════
      এন্ট্রি পপআপ — সব লজিক
   ════════════════════════════════════ */
+
+  /* ── localStorage cache — একই key বারবার parse এড়ায় ── */
+  var _lsCache = {};
+  function _lsGet(key) {
+    if (!_lsCache[key]) _lsCache[key] = JSON.parse(localStorage.getItem(key) || '[]');
+    return _lsCache[key];
+  }
+  function _lsSet(key, val) {
+    _lsCache[key] = val;
+    localStorage.setItem(key, JSON.stringify(val));
+  }
+  function _lsClear(key) { delete _lsCache[key]; }
 
   function toBn(n) { return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]); }
   function fmtAmt(n) { return '৳' + (n||0).toLocaleString('bn-BD'); }
@@ -4137,9 +4226,9 @@
     if (!name && !bill) { document.getElementById(`ep${n}Name`).focus(); return; }
     const baki = Math.max(0, bill - joma);
     const key  = EP_META[n].key;
-    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    const list = _lsGet(key);
     list.push({ id: Date.now(), name, memo, goj, bill, joma, baki, addr, mob, note, date: new Date().toISOString() });
-    localStorage.setItem(key, JSON.stringify(list));
+    _lsSet(key, list);
     /* ফর্ম রিসেট */
     [`ep${n}Name`,`ep${n}Memo`,`ep${n}Goj`,`ep${n}Bill`,`ep${n}Joma`,`ep${n}Addr`,`ep${n}Mob`,`ep${n}Note`]
       .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
@@ -4161,20 +4250,19 @@
     if (!name) { document.getElementById(`ep${n}Name`).focus(); return; }
     const netBaki = Math.max(0, baki - joma);
     const key  = EP_META[n].key;
-    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    const list = _lsGet(key);
     list.push({ id: Date.now(), name, memo, goj, baki: netBaki, joma, mob, addr, note, date: new Date().toISOString() });
-    localStorage.setItem(key, JSON.stringify(list));
+    _lsSet(key, list);
     [`ep${n}Name`,`ep${n}Memo`,`ep${n}Goj`,`ep${n}Baki`,`ep${n}Joma`,`ep${n}Mob`,`ep${n}Addr`,`ep${n}Note`]
       .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     epRender(n);
     _fbAutoSync();
   }
 
-  /* ── রেন্ডার (হোম কার্ড কাউন্ট + মোট বার আপডেট) ── */
+  /* ── রেন্ডার (হোম কার্ড কাউন্ট আপডেট) ── */
   function epRender(n) {
     const key   = EP_META[n].key;
-    const list  = JSON.parse(localStorage.getItem(key) || '[]');
-    const total = list.reduce((s, x) => s + (x.baki || 0), 0);
+    const list  = _lsGet(key);
 
     /* হোম কার্ড কাউন্ট */
     const cntEl = document.getElementById(`c${n}Count`);
@@ -4215,13 +4303,17 @@
     _fvCard = 0;
   }
 
+  /* debounced সার্চ — প্রতি keystroke-এ full re-render এড়ায় */
+  var _fvSearchDebounced = _debounce(fvFilterRender, 120);
+  var _dlSearchDebounced = _debounce(dlRender, 120);
+
   function fvFilterRender() {
     if (!_fvCard) return;
     const n    = _fvCard;
     const meta = EP_META[n];
     const key  = meta.key;
     const q    = (document.getElementById('fvSearch').value || '').trim().toLowerCase();
-    const all  = JSON.parse(localStorage.getItem(key) || '[]');
+    const all  = _lsGet(key);
     const list = q ? all.filter(x =>
       (x.name || '').toLowerCase().includes(q) ||
       (x.addr || '').toLowerCase().includes(q) ||
@@ -4298,8 +4390,8 @@
               + '<td class="td-num">' + fmtAmt(t.amt) + '</td>'
               + '<td>—</td>'
               + '<td class="td-num td-baki">' + fmtAmt(running) + '</td>'
-              + '<td>' + (t.note || '—') + '</td>'
               + '<td>' + (t.goj || '—') + '</td>'
+              + '<td>' + (t.note || '—') + '</td>'
               + '</tr>';
           } else {
             running -= t.amt;
@@ -4310,15 +4402,15 @@
               + '<td>—</td>'
               + '<td class="td-num">' + fmtAmt(t.amt) + '</td>'
               + '<td class="td-num">' + fmtAmt(running) + '</td>'
-              + '<td>' + (t.note || '—') + '</td>'
               + '<td>—</td>'
+              + '<td>' + (t.note || '—') + '</td>'
               + '</tr>';
           }
         });
         if (!rows) rows = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:12px">কোনো লেনদেন নেই</td></tr>';
         innerContent =
           '<table class="fv-excel"><thead><tr>'
-          + '<th>তারিখ</th><th>ম্যামো</th><th>বকেয়া/প্রাপ্য</th><th>জমা</th><th>মোট বাকি</th><th>মন্তব্য</th><th>গজ</th>'
+          + '<th>তারিখ</th><th>ম্যামো</th><th>বকেয়া/প্রাপ্য</th><th>জমা</th><th>মোট বাকি</th><th>গজ</th><th>মন্তব্য</th>'
           + '</tr></thead><tbody>' + rows + '</tbody></table>';
       } else {
         var txns = [];
@@ -4406,7 +4498,7 @@
     _detailId = itemId;
     const meta = EP_META[n];
     const key  = meta.key;
-    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    const list = _lsGet(key);
     const item = list.find(x => x.id === itemId);
     if (!item) return;
 
@@ -4425,47 +4517,49 @@
     var innerContent = '';
     if (isCustomer) {
       var txns = [];
-      if (item.bill)  txns.push({ date: item.date, memo: item.memo, type: 'bill',  amt: item.bill,  note: item.note, goj: item.goj || '' });
+      if (item.bill)  txns.push({ date: item.date, memo: item.memo, type: 'bill',  amt: item.bill,  note: item.note, goj: item.goj || '', _src:'init' });
       if (item.joma && !(item.history||[]).length)
-                      txns.push({ date: item.date, memo: item.memo, type: 'joma',  amt: item.joma,  note: '' });
-      (item.history || []).forEach(function(h) {
+                      txns.push({ date: item.date, memo: item.memo, type: 'joma',  amt: item.joma,  note: '', _src:'init_joma' });
+      (item.history || []).forEach(function(h, hi) {
         if (h.type === 'bokeyoa') {
-          if (h.bill)  txns.push({ date: h.date, memo: h.memo, type: 'bill',  amt: h.bill,  note: h.note || '', goj: h.goj || '' });
+          if (h.bill)  txns.push({ date: h.date, memo: h.memo, type: 'bill',  amt: h.bill,  note: h.note || '', goj: h.goj || '', _src:'hist', _histIdx: hi });
         } else if (h.type === 'joma') {
-          txns.push({ date: h.date, memo: h.memo, type: 'joma', amt: h.joma, note: h.note || '', goj: '' });
+          txns.push({ date: h.date, memo: h.memo, type: 'joma', amt: h.joma, note: h.note || '', goj: '', _src:'hist', _histIdx: hi });
         }
       });
       var rows = '';
       var running = 0;
       txns.forEach(function(t) {
+        var srcAttr = ' data-src="' + t._src + '" data-hist-idx="' + (t._histIdx !== undefined ? t._histIdx : '') + '" data-txn-type="' + t.type + '"'
+          + ' data-raw-date="' + (t.date||'') + '" data-raw-memo="' + _esc(t.memo||'') + '" data-raw-note="' + _esc(t.note||'') + '" data-raw-goj="' + _esc(t.goj||'') + '" data-raw-amt="' + (t.amt||0) + '"';
         if (t.type === 'bill') {
           running += t.amt;
-          rows += '<tr class="tr-bill">'
-            + '<td>' + fmtDate(t.date) + '</td>'
-            + '<td class="td-label">' + (t.memo || '—') + '</td>'
-            + '<td class="td-num">' + fmtAmt(t.amt) + '</td>'
-            + '<td>—</td>'
-            + '<td class="td-num td-baki">' + fmtAmt(running) + '</td>'
-            + '<td>' + (t.note || '—') + '</td>'
-            + '<td>' + (t.goj || '—') + '</td>'
+          rows += '<tr class="tr-bill"' + srcAttr + '>'
+            + '<td data-field="date">' + fmtDate(t.date) + '</td>'
+            + '<td class="td-label" data-field="memo">' + (t.memo || '—') + '</td>'
+            + '<td class="td-num" data-field="amt">' + fmtAmt(t.amt) + '</td>'
+            + '<td data-field="readonly">—</td>'
+            + '<td class="td-num td-baki" data-field="readonly">' + fmtAmt(running) + '</td>'
+            + '<td data-field="goj">' + (t.goj || '—') + '</td>'
+            + '<td data-field="note">' + (t.note || '—') + '</td>'
             + '</tr>';
         } else {
           running -= t.amt;
-          rows += '<tr class="tr-joma">'
-            + '<td>' + fmtDate(t.date) + '</td>'
-            + '<td class="td-label">' + (t.memo || '—') + '</td>'
-            + '<td>—</td>'
-            + '<td class="td-num td-joma">' + fmtAmt(t.amt) + '</td>'
-            + '<td class="td-num td-baki">' + fmtAmt(Math.max(0,running)) + '</td>'
-            + '<td>' + (t.note || '—') + '</td>'
-            + '<td>—</td>'
+          rows += '<tr class="tr-joma"' + srcAttr + '>'
+            + '<td data-field="date">' + fmtDate(t.date) + '</td>'
+            + '<td class="td-label" data-field="memo">' + (t.memo || '—') + '</td>'
+            + '<td data-field="readonly">—</td>'
+            + '<td class="td-num td-joma" data-field="amt">' + fmtAmt(t.amt) + '</td>'
+            + '<td class="td-num td-baki" data-field="readonly">' + fmtAmt(Math.max(0,running)) + '</td>'
+            + '<td data-field="readonly">—</td>'
+            + '<td data-field="note">' + (t.note || '—') + '</td>'
             + '</tr>';
         }
       });
       if (!rows) rows = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:12px">কোনো লেনদেন নেই</td></tr>';
       innerContent =
         '<table class="fv-excel"><thead><tr>'
-        + '<th>তারিখ</th><th>ম্যামো</th><th>বকেয়া/প্রাপ্য</th><th>জমা</th><th>মোট বাকি</th><th>মন্তব্য</th><th>গজ</th>'
+        + '<th>তারিখ</th><th>ম্যামো</th><th>বকেয়া/প্রাপ্য</th><th>জমা</th><th>মোট বাকি</th><th>গজ</th><th>মন্তব্য</th>'
         + '</tr></thead><tbody>' + rows + '</tbody></table>';
     } else {
       /* সরবরাহকারী */
@@ -4473,15 +4567,15 @@
       /* প্রাথমিক এন্ট্রি — history আসার আগের পুরনো ডেটা */
       var initPawna = (item.baki||0) + (item.joma||0);
       if (initPawna > 0 && !(item.history||[]).length)
-        txns.push({ date: item.date, memo: item.memo, type: 'pawna', amt: initPawna, note: item.note || '', goj: item.goj || '' });
+        txns.push({ date: item.date, memo: item.memo, type: 'pawna', amt: initPawna, note: item.note || '', goj: item.goj || '', _src:'init' });
       if (item.joma && !(item.history||[]).length)
-        txns.push({ date: item.date, memo: item.memo, type: 'joma', amt: item.joma, note: '' });
+        txns.push({ date: item.date, memo: item.memo, type: 'joma', amt: item.joma, note: '', _src:'init_joma' });
       /* history লগ */
-      (item.history || []).forEach(function(h) {
+      (item.history || []).forEach(function(h, hi) {
         if (h.type === 'bokeyoa') {
-          txns.push({ date: h.date, memo: h.memo, type: 'pawna', amt: h.baki||0, note: h.note || '', goj: h.goj || '' });
+          txns.push({ date: h.date, memo: h.memo, type: 'pawna', amt: h.baki||0, note: h.note || '', goj: h.goj || '', _src:'hist', _histIdx: hi });
         } else if (h.type === 'joma') {
-          txns.push({ date: h.date, memo: h.memo, type: 'joma', amt: h.joma||0, note: h.note || '', goj: '' });
+          txns.push({ date: h.date, memo: h.memo, type: 'joma', amt: h.joma||0, note: h.note || '', goj: '', _src:'hist', _histIdx: hi });
         }
       });
       /* তারিখ অনুযায়ী সাজাই */
@@ -4489,26 +4583,28 @@
       var rows = '';
       var running = 0;
       txns.forEach(function(t) {
+        var srcAttr = ' data-src="' + t._src + '" data-hist-idx="' + (t._histIdx !== undefined ? t._histIdx : '') + '" data-txn-type="' + t.type + '"'
+          + ' data-raw-date="' + (t.date||'') + '" data-raw-memo="' + _esc(t.memo||'') + '" data-raw-note="' + _esc(t.note||'') + '" data-raw-goj="' + _esc(t.goj||'') + '" data-raw-amt="' + (t.amt||0) + '"';
         if (t.type === 'pawna') {
           running += t.amt;
-          rows += '<tr class="tr-bill">'
-            + '<td>' + fmtDate(t.date) + '</td>'
-            + '<td class="td-label">' + (t.memo || '—') + '</td>'
-            + '<td class="td-num">' + fmtAmt(t.amt) + '</td>'
-            + '<td>—</td>'
-            + '<td class="td-num td-baki">' + fmtAmt(running) + '</td>'
-            + '<td>' + (t.goj || '—') + '</td>'
+          rows += '<tr class="tr-bill"' + srcAttr + '>'
+            + '<td data-field="date">' + fmtDate(t.date) + '</td>'
+            + '<td class="td-label" data-field="memo">' + (t.memo || '—') + '</td>'
+            + '<td class="td-num" data-field="amt">' + fmtAmt(t.amt) + '</td>'
+            + '<td data-field="readonly">—</td>'
+            + '<td class="td-num td-baki" data-field="readonly">' + fmtAmt(running) + '</td>'
+            + '<td data-field="goj">' + (t.goj || '—') + '</td>'
             + '</tr>';
         } else if (t.type === 'joma') {
           running -= t.amt;
           if (running < 0) running = 0;
-          rows += '<tr class="tr-joma">'
-            + '<td>' + fmtDate(t.date) + '</td>'
-            + '<td class="td-label">' + (t.memo || '—') + '</td>'
-            + '<td>—</td>'
-            + '<td class="td-num td-joma">' + fmtAmt(t.amt) + '</td>'
-            + '<td class="td-num td-baki">' + fmtAmt(running) + '</td>'
-            + '<td>—</td>'
+          rows += '<tr class="tr-joma"' + srcAttr + '>'
+            + '<td data-field="date">' + fmtDate(t.date) + '</td>'
+            + '<td class="td-label" data-field="memo">' + (t.memo || '—') + '</td>'
+            + '<td data-field="readonly">—</td>'
+            + '<td class="td-num td-joma" data-field="amt">' + fmtAmt(t.amt) + '</td>'
+            + '<td class="td-num td-baki" data-field="readonly">' + fmtAmt(running) + '</td>'
+            + '<td data-field="readonly">—</td>'
             + '</tr>';
         }
       });
@@ -4523,8 +4619,11 @@
     var bodyHtml =
       '<div class="fv-table-card">'
       + '<div class="fv-excel-wrap" style="margin-bottom:0;">' + innerContent + '</div>'
-      + '<div class="fv-excel-foot">'
+      + '<div class="fv-excel-foot" id="fvDetailFoot-' + itemId + '">'
       + '<div><span class="fv-excel-foot-lbl">' + (isCustomer ? 'বর্তমান বকেয়া/প্রাপ্য' : 'বর্তমান পাওনা/প্রদেয়') + '&nbsp;&nbsp;</span><span class="fv-excel-foot-val">' + fmtAmt(item.baki||0) + '</span></div>'
+      + '<button class="tbl-edit-mode-btn" id="fvDetailEditBtn-' + itemId + '" onclick="fvDetailToggleEditMode(' + n + ',' + itemId + ',this)">'
+      +   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
+      + '</button>'
       + '</div>'
       + '<div class="fv-entry-btns">'
       +   '<button class="fv-bokeyoa-btn" id="dbbtn-' + itemId + '" onclick="fvToggleMiniDetail(\'' + itemId + '\',\'bokeyoa\',event)">'
@@ -4620,6 +4719,7 @@
     document.getElementById('fvDetailScreen').classList.remove('open');
     document.body.style.overflow = '';
     _detailN = 0; _detailId = 0;
+    _detailEditActive = false;
   }
 
   /* ── পার্সন ডিলিট — সিক্রেট কী যাচাই করে ── */
@@ -4632,10 +4732,10 @@
       return;
     }
     const key  = EP_META[_detailN].key;
-    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    const list = _lsGet(key);
     const name = (list.find(x => x.id === _detailId) || {}).name || 'এই ব্যক্তি';
     const newList = list.filter(x => x.id !== _detailId);
-    localStorage.setItem(key, JSON.stringify(newList));
+    _lsSet(key, newList);
     _fbAutoSync();
     fvDetailClose();
     epRender(_detailN);
@@ -4647,7 +4747,7 @@
   function fvCardDelete(n, itemId, evt) {
     evt.stopPropagation();
     const key  = EP_META[n].key;
-    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    const list = _lsGet(key);
     const name = (list.find(x => x.id === itemId) || {}).name || 'এই ব্যক্তি';
     const entered = prompt(name + '-এর সব ডেটা মুছে ফেলতে\nসিক্রেট কী দাও:');
     if (entered === null) return;
@@ -4655,7 +4755,7 @@
       alert('❌ ভুল সিক্রেট কী! ডেটা মোছা হয়নি।');
       return;
     }
-    localStorage.setItem(key, JSON.stringify(list.filter(x => x.id !== itemId)));
+    _lsSet(key, list.filter(x => x.id !== itemId));
     _fbAutoSync();
     epRender(n);
     fvFilterRender();
@@ -4688,7 +4788,7 @@
   function fvDetailSaveBokeyoa() {
     var n = _detailN, parentId = _detailId;
     var key  = EP_META[n].key;
-    var list = JSON.parse(localStorage.getItem(key) || '[]');
+    var list = _lsGet(key);
     var idx  = list.findIndex(x => x.id === parentId);
     if (idx < 0) return;
     var memo  = (document.getElementById('dmb-memo-'  + parentId)?.value || '').trim();
@@ -4701,7 +4801,7 @@
     list[idx].bill  = (list[idx].bill || 0) + bill;
     if (!list[idx].history) list[idx].history = [];
     list[idx].history.push({ type:'bokeyoa', memo, date, bill, baki: newBaki, note, goj, ts: Date.now() });
-    localStorage.setItem(key, JSON.stringify(list));
+    _lsSet(key, list);
     epRender(n);
     fvOpenDetail(n, parentId); /* রিফ্রেশ */
     _fbAutoSync();
@@ -4711,7 +4811,7 @@
   function fvDetailSaveJoma() {
     var n = _detailN, parentId = _detailId;
     var key  = EP_META[n].key;
-    var list = JSON.parse(localStorage.getItem(key) || '[]');
+    var list = _lsGet(key);
     var idx  = list.findIndex(x => x.id === parentId);
     if (idx < 0) return;
     var memo = (document.getElementById('dmj-memo-' + parentId)?.value || '').trim();
@@ -4722,7 +4822,7 @@
     list[idx].baki = Math.max(0, (list[idx].baki || 0) - joma);
     if (!list[idx].history) list[idx].history = [];
     list[idx].history.push({ type:'joma', memo, date, joma, note, ts: Date.now() });
-    localStorage.setItem(key, JSON.stringify(list));
+    _lsSet(key, list);
     epRender(n);
     fvOpenDetail(n, parentId);
     _fbAutoSync();
@@ -4732,7 +4832,7 @@
   function fvDetailSaveBokeyoaSupplier() {
     var n = _detailN, parentId = _detailId;
     var key  = EP_META[n].key;
-    var list = JSON.parse(localStorage.getItem(key) || '[]');
+    var list = _lsGet(key);
     var idx  = list.findIndex(x => x.id === parentId);
     if (idx < 0) return;
     var memo  = (document.getElementById('dmb-memo-' + parentId)?.value || '').trim();
@@ -4743,7 +4843,7 @@
     list[idx].baki = (list[idx].baki || 0) + pawna;
     if (!list[idx].history) list[idx].history = [];
     list[idx].history.push({ type:'bokeyoa', memo, date, baki: pawna, note, goj, ts: Date.now() });
-    localStorage.setItem(key, JSON.stringify(list));
+    _lsSet(key, list);
     epRender(n);
     fvOpenDetail(n, parentId);
     _fbAutoSync();
@@ -4753,7 +4853,7 @@
   function fvDetailSaveJomaSupplier() {
     var n = _detailN, parentId = _detailId;
     var key  = EP_META[n].key;
-    var list = JSON.parse(localStorage.getItem(key) || '[]');
+    var list = _lsGet(key);
     var idx  = list.findIndex(x => x.id === parentId);
     if (idx < 0) return;
     var memo = (document.getElementById('dmj-memo-' + parentId)?.value || '').trim();
@@ -4763,7 +4863,7 @@
     list[idx].baki = Math.max(0, (list[idx].baki || 0) - joma);
     if (!list[idx].history) list[idx].history = [];
     list[idx].history.push({ type:'joma', memo, date, joma, note, ts: Date.now() });
-    localStorage.setItem(key, JSON.stringify(list));
+    _lsSet(key, list);
     epRender(n);
     fvOpenDetail(n, parentId);
     _fbAutoSync();
@@ -4777,7 +4877,7 @@
   function fvEditOpen(n, id, evt) {
     evt.stopPropagation();
     const key  = EP_META[n].key;
-    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    const list = _lsGet(key);
     const item = list.find(x => x.id === id);
     if (!item) return;
     _editN  = n;
@@ -4812,18 +4912,23 @@
     const mobRaw = document.getElementById('fvEditMob').value.trim();
     const mob  = mobRaw ? '+880' + mobRaw : '';
     const key  = EP_META[_editN].key;
-    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    const list = _lsGet(key);
     const idx  = list.findIndex(x => x.id === _editId);
     if (idx < 0) return;
     list[idx].name = name;
     list[idx].addr = addr;
     list[idx].mob  = mob;
-    localStorage.setItem(key, JSON.stringify(list));
+    _lsSet(key, list);
+    /* fvEditClose এর আগে n সংরক্ষণ করি — close করলে _editN শূন্য হয়ে যায় */
+    const savedN  = _editN;
+    const savedId = _editId;
     fvEditClose();
-    epRender(_editN);
-    fvFilterRender();
+    epRender(savedN);
+    /* fvScreen খোলা থাকলে পাইল রিফ্রেশ */
+    if (_fvCard === savedN) fvFilterRender();
     /* ডিটেইল স্ক্রিন খোলা থাকলে রিফ্রেশ */
-    if (_detailN && _detailId) fvOpenDetail(_detailN, _detailId);
+    if (_detailN && _detailId === savedId) fvOpenDetail(_detailN, _detailId);
+    notifPush('success', 'তথ্য সম্পাদনা সেভ হয়েছে।');
     _fbAutoSync();
   }
 
@@ -4839,8 +4944,7 @@
 
   [1,2,3,4].forEach(n => {
     const key   = EP_META[n].key;
-    const list  = JSON.parse(localStorage.getItem(key) || '[]');
-    const total = list.reduce((s, x) => s + (x.baki || 0), 0);
+    const list  = _lsGet(key);
     const cntEl = document.getElementById(`c${n}Count`);
     if (cntEl) cntEl.textContent = '';
   });
@@ -4872,6 +4976,7 @@
   function dlClose() {
     document.getElementById('dlScreen').classList.remove('open');
     document.body.style.overflow = '';
+    _dlEditActive = false;
   }
 
   function dlTabChange(btn, cat) {
@@ -4887,7 +4992,7 @@
     var all = [];
 
     [1, 2, 3, 4].forEach(function(n) {
-      var list = JSON.parse(localStorage.getItem(EP_META[n].key) || '[]');
+      var list = _lsGet(EP_META[n].key);
       list.forEach(function(item) {
         all.push(Object.assign({}, item, { _cat: n }));
       });
@@ -4945,16 +5050,16 @@
       var waBtn = waNum
         ? '<a href="https://wa.me/' + waNum + '" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;text-decoration:none;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.15)" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>'
         : '<span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:#3a3020;color:#6a5a40;font-size:13px;border:1px solid #4a3a20"><i class="fa-brands fa-whatsapp"></i></span>';
-      rows += '<tr>'
-        + '<td style="min-width:110px;font-weight:700">' + _esc(item.name || '—') + '</td>'
-        + '<td class="' + (isZero ? 'td-joma' : 'td-baki') + '" style="min-width:80px">'
+      rows += '<tr data-cat="' + item._cat + '" data-item-id="' + item.id + '" data-raw-name="' + _esc(item.name||'') + '" data-raw-addr="' + _esc(item.addr||'') + '" data-raw-baki="' + baki + '">'
+        + '<td data-field="name" style="min-width:110px;font-weight:700">' + _esc(item.name || '—') + '</td>'
+        + '<td data-field="baki" class="' + (isZero ? 'td-joma' : 'td-baki') + '" style="min-width:80px">'
             + fmtAmt(baki) + '</td>'
-        + '<td style="min-width:110px;color:#5a4a30">' + _esc(item.addr || '—') + '</td>'
-        + '<td style="min-width:80px;text-align:center">'
+        + '<td data-field="addr" style="min-width:110px;color:#5a4a30">' + _esc(item.addr || '—') + '</td>'
+        + '<td data-field="readonly" style="min-width:80px;text-align:center">'
             + '<div style="display:flex;gap:6px;justify-content:center;align-items:center">'
             + callBtn + waBtn
             + '</div></td>'
-        + '<td style="min-width:70px;text-align:center">'
+        + '<td data-field="readonly" style="min-width:70px;text-align:center">'
             + '<button onclick="dlJomaOpen(' + item._cat + ',' + item.id + ',event)" style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;background:linear-gradient(135deg,#1a5c35,#256b40);color:#fff;border:1px solid rgba(255,255,255,0.15);font-family:\'Noto Sans Bengali\',sans-serif;font-size:11px;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.35);white-space:nowrap">'
             + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>জমা'
             + '</button></td>'
@@ -4997,7 +5102,7 @@
     _dlJomaItemId = itemId;
     /* পার্টির নাম বের করা */
     var key  = EP_META[cat].key;
-    var list = JSON.parse(localStorage.getItem(key) || '[]');
+    var list = _lsGet(key);
     var item = list.find(function(x){ return x.id === itemId; });
     document.getElementById('dlJomaName').textContent = item ? (item.name || '') : '';
     /* ফিল্ড ক্লিয়ার */
@@ -5025,7 +5130,7 @@
     var memo = '';
     var note = (document.getElementById('dlJomaNote').value || '').trim();
     var key  = EP_META[_dlJomaCat].key;
-    var list = JSON.parse(localStorage.getItem(key) || '[]');
+    var list = _lsGet(key);
     var idx  = list.findIndex(function(x){ return x.id === _dlJomaItemId; });
     if (idx < 0) return;
     var isCustomer = EP_META[_dlJomaCat].type === 'customer';
@@ -5035,7 +5140,7 @@
     list[idx].baki = Math.max(0, (list[idx].baki || 0) - joma);
     if (!list[idx].history) list[idx].history = [];
     list[idx].history.push({ type:'joma', memo: memo, date: date, joma: joma, note: note, ts: Date.now() });
-    localStorage.setItem(key, JSON.stringify(list));
+    _lsSet(key, list);
     epRender(_dlJomaCat);
     dlJomaClose();
     dlRender();
@@ -5049,6 +5154,234 @@
       .replace(/</g,'&lt;')
       .replace(/>/g,'&gt;')
       .replace(/"/g,'&quot;');
+  }
+
+  /* ══════════════════════════════════════════
+     DETAIL SCREEN — ইনলাইন এডিট মোড
+  ══════════════════════════════════════════ */
+  var _detailEditActive = false;
+
+  function fvDetailToggleEditMode(n, itemId, btn) {
+    var wrap = document.querySelector('#fvDetailBody .fv-excel-wrap');
+    if (!wrap) return;
+    var table = wrap.querySelector('.fv-excel');
+    if (!table) return;
+
+    if (!_detailEditActive) {
+      /* ── এডিট মোড চালু ── */
+      _detailEditActive = true;
+      btn.classList.add('active');
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      table.classList.add('edit-mode');
+
+      table.querySelectorAll('tbody tr').forEach(function(tr) {
+        tr.querySelectorAll('td').forEach(function(td) {
+          var field = td.getAttribute('data-field');
+          if (!field || field === 'readonly') return;
+
+          td.classList.add('editable-cell');
+          var rawVal = '';
+          if (field === 'date')  rawVal = tr.getAttribute('data-raw-date')  || '';
+          if (field === 'memo')  rawVal = tr.getAttribute('data-raw-memo')  || '';
+          if (field === 'note')  rawVal = tr.getAttribute('data-raw-note')  || '';
+          if (field === 'goj')   rawVal = tr.getAttribute('data-raw-goj')   || '';
+          if (field === 'amt')   rawVal = tr.getAttribute('data-raw-amt')   || '';
+
+          var inp = document.createElement('input');
+          inp.className = 'cell-input';
+          inp.setAttribute('data-field', field);
+          if (field === 'date') {
+            inp.type = 'date';
+            inp.value = rawVal;
+          } else if (field === 'amt') {
+            inp.type = 'number';
+            inp.inputMode = 'decimal';
+            inp.value = rawVal;
+            inp.style.textAlign = 'right';
+          } else {
+            inp.type = 'text';
+            inp.value = rawVal;
+          }
+          td.textContent = '';
+          td.appendChild(inp);
+        });
+      });
+
+    } else {
+      /* ── সেভ মোড ── */
+      _detailEditActive = false;
+      btn.classList.remove('active');
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+      table.classList.remove('edit-mode');
+
+      var key  = EP_META[n].key;
+      var list = _lsGet(key);
+      var itemIdx = list.findIndex(function(x){ return x.id === itemId; });
+      if (itemIdx < 0) return;
+      var item = list[itemIdx];
+      var isCustomer = EP_META[n].type === 'customer';
+
+      table.querySelectorAll('tbody tr').forEach(function(tr) {
+        var src     = tr.getAttribute('data-src');
+        var histIdx = tr.getAttribute('data-hist-idx');
+        var txnType = tr.getAttribute('data-txn-type');
+        if (!src) return;
+
+        /* input মান পড়ি */
+        function getInp(field) {
+          var inp = tr.querySelector('input.cell-input[data-field="' + field + '"]');
+          return inp ? inp.value.trim() : '';
+        }
+        var newDate = getInp('date');
+        var newMemo = getInp('memo');
+        var newNote = getInp('note');
+        var newGoj  = getInp('goj');
+        var newAmt  = parseFloat(getInp('amt'));
+
+        if (src === 'init') {
+          /* প্রথম/প্রাথমিক এন্ট্রি */
+          if (newDate) item.date = newDate;
+          if (newMemo !== '') item.memo = newMemo;
+          if (newNote !== '') item.note = newNote;
+          if (newGoj  !== '') item.goj  = newGoj;
+          if (!isNaN(newAmt) && newAmt >= 0) {
+            if (isCustomer) { item.bill = newAmt; }
+            else            { item.baki = newAmt; }
+          }
+        } else if (src === 'init_joma') {
+          if (newDate) item.date = newDate;
+          if (!isNaN(newAmt) && newAmt >= 0) item.joma = newAmt;
+        } else if (src === 'hist' && histIdx !== '') {
+          var hi = parseInt(histIdx);
+          var h  = item.history && item.history[hi];
+          if (!h) return;
+          if (newDate) h.date = newDate;
+          if (newMemo !== '') h.memo = newMemo;
+          if (newNote !== '') h.note = newNote;
+          if (newGoj  !== '') h.goj  = newGoj;
+          if (!isNaN(newAmt) && newAmt >= 0) {
+            if (h.type === 'bokeyoa') {
+              if (isCustomer) h.bill = newAmt;
+              else            h.baki = newAmt;
+            } else if (h.type === 'joma') {
+              h.joma = newAmt;
+            }
+          }
+        }
+      });
+
+      /* baki পুনর্গণনা করি সমস্ত history থেকে */
+      if (isCustomer) {
+        var totalBill = item.bill || 0;
+        var totalJoma = item.joma || 0;
+        (item.history || []).forEach(function(h) {
+          if (h.type === 'bokeyoa') totalBill += (h.bill || 0);
+          else if (h.type === 'joma') totalJoma += (h.joma || 0);
+        });
+        item.baki = Math.max(0, totalBill - totalJoma);
+      } else {
+        var totalPawna = 0, totalJomaSup = 0;
+        (item.history || []).forEach(function(h) {
+          if (h.type === 'bokeyoa') totalPawna += (h.baki || 0);
+          else if (h.type === 'joma') totalJomaSup += (h.joma || 0);
+        });
+        /* init এর baki (history নেই হলে) */
+        if (!(item.history||[]).length) {
+          /* item.baki already set above */
+        } else {
+          item.baki = Math.max(0, totalPawna - totalJomaSup);
+        }
+      }
+
+      _lsSet(key, list);
+      epRender(n);
+      _fbAutoSync();
+      fvOpenDetail(n, itemId);
+      notifPush('success', 'টেবিল এডিট সেভ হয়েছে।');
+    }
+  }
+
+  /* ══════════════════════════════════════════
+     PARTY LEDGER (DL) — ইনলাইন এডিট মোড
+  ══════════════════════════════════════════ */
+  var _dlEditActive = false;
+
+  function dlToggleEditMode(btn) {
+    var wrap = document.getElementById('dlTableWrap');
+    if (!wrap) return;
+    var table = wrap.querySelector('.fv-excel');
+    if (!table) return;
+
+    if (!_dlEditActive) {
+      /* ── এডিট মোড চালু ── */
+      _dlEditActive = true;
+      btn.classList.add('active');
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      table.classList.add('edit-mode');
+
+      table.querySelectorAll('tbody tr').forEach(function(tr) {
+        tr.querySelectorAll('td').forEach(function(td) {
+          var field = td.getAttribute('data-field');
+          if (!field || field === 'readonly') return;
+          td.classList.add('editable-cell');
+
+          var rawVal = '';
+          if (field === 'name') rawVal = tr.getAttribute('data-raw-name') || '';
+          if (field === 'addr') rawVal = tr.getAttribute('data-raw-addr') || '';
+          if (field === 'baki') rawVal = tr.getAttribute('data-raw-baki') || '';
+
+          var inp = document.createElement('input');
+          inp.className = 'cell-input';
+          inp.setAttribute('data-field', field);
+          inp.type = field === 'baki' ? 'number' : 'text';
+          inp.value = rawVal;
+          if (field === 'baki') inp.style.textAlign = 'right';
+          td.textContent = '';
+          td.appendChild(inp);
+        });
+      });
+
+    } else {
+      /* ── সেভ মোড ── */
+      _dlEditActive = false;
+      btn.classList.remove('active');
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+      table.classList.remove('edit-mode');
+
+      table.querySelectorAll('tbody tr').forEach(function(tr) {
+        var cat    = parseInt(tr.getAttribute('data-cat'));
+        var itemId = parseInt(tr.getAttribute('data-item-id'));
+        if (!cat || !itemId) return;
+
+        var key  = EP_META[cat].key;
+        var list = _lsGet(key);
+        var idx  = list.findIndex(function(x){ return x.id === itemId; });
+        if (idx < 0) return;
+
+        function getInp(field) {
+          var inp = tr.querySelector('input.cell-input[data-field="' + field + '"]');
+          return inp ? inp.value.trim() : null;
+        }
+
+        var newName = getInp('name');
+        var newAddr = getInp('addr');
+        var newBaki = getInp('baki');
+
+        if (newName !== null && newName !== '') list[idx].name = newName;
+        if (newAddr !== null) list[idx].addr = newAddr;
+        if (newBaki !== null) {
+          var nb = parseFloat(newBaki);
+          if (!isNaN(nb) && nb >= 0) list[idx].baki = nb;
+        }
+
+        _lsSet(key, list);
+      });
+
+      [1,2,3,4].forEach(function(n){ epRender(n); });
+      _fbAutoSync();
+      dlRender();
+      notifPush('success', 'Party Ledger এডিট সেভ হয়েছে।');
+    }
   }
 
 </script>
