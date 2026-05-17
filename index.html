@@ -5277,6 +5277,12 @@
 
   function fvEditOpen(n, id, evt) {
     evt.stopPropagation();
+    const entered = prompt('তথ্য সম্পাদনা করতে সিক্রেট কী দাও:');
+    if (entered === null) return;
+    if (entered !== _FB_SECRET) {
+      alert('❌ ভুল সিক্রেট কী! এডিট করা যাবে না।');
+      return;
+    }
     _fvEditOpenDo(n, id);
   }
 
@@ -5567,6 +5573,15 @@
   var _detailEditActive = false;
 
   function fvDetailToggleEditMode(n, itemId, btn) {
+    /* এডিট চালু করতে সিক্রেট কী লাগবে, বন্ধ করতে লাগবে না */
+    if (!_detailEditActive) {
+      const entered = prompt('টেবিল এডিট করতে সিক্রেট কী দাও:');
+      if (entered === null) return;
+      if (entered !== _FB_SECRET) {
+        alert('❌ ভুল সিক্রেট কী! এডিট করা যাবে না।');
+        return;
+      }
+    }
     _fvDetailToggleDo(n, itemId, btn);
   }
 
@@ -5716,6 +5731,15 @@
   var _dlEditActive = false;
 
   function dlToggleEditMode(btn) {
+    /* এডিট চালু করতে সিক্রেট কী লাগবে, বন্ধ করতে লাগবে না */
+    if (!_dlEditActive) {
+      const entered = prompt('Party Ledger এডিট করতে সিক্রেট কী দাও:');
+      if (entered === null) return;
+      if (entered !== _FB_SECRET) {
+        alert('❌ ভুল সিক্রেট কী! এডিট করা যাবে না।');
+        return;
+      }
+    }
     _dlToggleDo(btn);
   }
 
