@@ -4907,6 +4907,33 @@
     const mob = (item.mob || '').trim();
     const hasMob = mob.length > 0;
 
+    /* ── পুরনো ডেটা repair: item.bill যদি history bill এর চেয়ে বড় হয়ে গিয়ে থাকে ── */
+    if (isCustomer && (item.history||[]).length > 0) {
+      var _initBill = item.bill || 0;
+      var _histBill = 0;
+      item.history.forEach(function(h){ if (h.type==='bokeyoa') _histBill += (h.bill||0); });
+      /* init bill টা শুধু প্রথম এন্ট্রির, history bill আলাদা — তাই item.bill > init হওয়ার কথা নেই */
+      /* কিন্তু বাগের কারণে item.bill এ history bill জমে গিয়ে থাকলে সংশোধন করি */
+      if (_initBill > _histBill && _histBill > 0) {
+        /* item.bill টা শুধু প্রথম এন্ট্রির পরিমাণ হওয়া উচিত — history যোগ বাদ দিই */
+        var _repaired = _initBill - _histBill;
+        if (_repaired >= 0) {
+          item.bill = _repaired;
+          /* baki পুনর্গণনা */
+          var _tb = _repaired, _tj = item.joma || 0;
+          item.history.forEach(function(h){
+            if (h.type==='bokeyoa') _tb += (h.bill||0);
+            else if (h.type==='joma') _tj += (h.joma||0);
+          });
+          item.baki = Math.max(0, _tb - _tj);
+          /* repair করা ডেটা save করি */
+          var _rList = _lsGet(meta.key);
+          var _rIdx  = _rList.findIndex(function(x){ return x.id === itemId; });
+          if (_rIdx >= 0) { _rList[_rIdx].bill = item.bill; _rList[_rIdx].baki = item.baki; _lsSet(meta.key, _rList); }
+        }
+      }
+    }
+
     /* হেডারে নাম ও মেটা */
     document.getElementById('fvDetailName').textContent = item.name || '—';
     var metaParts = [];
@@ -4916,6 +4943,7 @@
 
     /* Excel টেবিল কন্টেন্ট */
     var innerContent = '';
+    var _detailRunning = 0; /* টেবিলের সব transaction শেষে প্রকৃত বাকি */
     if (isCustomer) {
       var txns = [];
       if (item.bill)  txns.push({ date: item.date, memo: item.memo, type: 'bill',  amt: item.bill,  note: item.note, goj: item.goj || '', _src:'init' });
@@ -4946,17 +4974,20 @@
             + '</tr>';
         } else {
           running -= t.amt;
+          running = Math.max(0, running);
           rows += '<tr class="tr-joma"' + srcAttr + '>'
             + '<td data-field="date">' + fmtDate(t.date) + '</td>'
             + '<td class="td-label" data-field="memo">' + (t.memo || '—') + '</td>'
             + '<td data-field="readonly">—</td>'
             + '<td class="td-num td-joma" data-field="amt">' + fmtAmt(t.amt) + '</td>'
-            + '<td class="td-num td-baki" data-field="readonly">' + fmtAmt(Math.max(0,running)) + '</td>'
+            + '<td class="td-num td-baki" data-field="readonly">' + fmtAmt(running) + '</td>'
             + '<td data-field="readonly">—</td>'
             + '<td data-field="note">' + (t.note || '—') + '</td>'
             + '</tr>';
         }
       });
+      /* running = সকল transaction শেষে প্রকৃত বাকি — এটাই ফুটারে দেখাবে */
+      _detailRunning = running;
       if (!rows) rows = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:12px">কোনো লেনদেন নেই</td></tr>';
       innerContent =
         '<table class="fv-excel"><thead><tr>'
@@ -5009,6 +5040,8 @@
             + '</tr>';
         }
       });
+      /* running = সকল transaction শেষে প্রকৃত বাকি */
+      _detailRunning = running;
       if (!rows) rows = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:12px">কোনো লেনদেন নেই</td></tr>';
       innerContent =
         '<table class="fv-excel"><thead><tr>'
@@ -5021,7 +5054,7 @@
       '<div class="fv-table-card">'
       + '<div class="fv-excel-wrap" style="margin-bottom:0;">' + innerContent + '</div>'
       + '<div class="fv-excel-foot" id="fvDetailFoot-' + itemId + '">'
-      + '<div><span class="fv-excel-foot-lbl">' + (isCustomer ? 'বর্তমান বকেয়া/প্রাপ্য' : 'বর্তমান পাওনা/প্রদেয়') + '&nbsp;&nbsp;</span><span class="fv-excel-foot-val">' + fmtAmt(item.baki||0) + '</span></div>'
+      + '<div><span class="fv-excel-foot-lbl">' + (isCustomer ? 'বর্তমান বকেয়া/প্রাপ্য' : 'বর্তমান পাওনা/প্রদেয়') + '&nbsp;&nbsp;</span><span class="fv-excel-foot-val">' + fmtAmt(_detailRunning) + '</span></div>'
       + '<button class="tbl-edit-mode-btn" id="fvDetailEditBtn-' + itemId + '" onclick="fvDetailToggleEditMode(' + n + ',' + itemId + ',this)">'
       +   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
       + '</button>'
@@ -5199,7 +5232,7 @@
     var note  = (document.getElementById('dmb-note-'  + parentId)?.value || '').trim();
     var newBaki = Math.max(0, bill);
     list[idx].baki  = (list[idx].baki || 0) + newBaki;
-    list[idx].bill  = (list[idx].bill || 0) + bill;
+    /* item.bill শুধু প্রাথমিক এন্ট্রি — history[] এ নতুন বকেয়া যোগ হয়, item.bill আর বাড়ানো হয় না */
     if (!list[idx].history) list[idx].history = [];
     list[idx].history.push({ type:'bokeyoa', memo, date, bill, baki: newBaki, note, goj, ts: Date.now() });
     _lsSet(key, list);
@@ -5704,15 +5737,16 @@
         });
         item.baki = Math.max(0, totalBill - totalJoma);
       } else {
+        /* সরবরাহকারী — history থেকে সম্পূর্ণ পুনর্গণনা */
         var totalPawna = 0, totalJomaSup = 0;
-        (item.history || []).forEach(function(h) {
-          if (h.type === 'bokeyoa') totalPawna += (h.baki || 0);
-          else if (h.type === 'joma') totalJomaSup += (h.joma || 0);
-        });
-        /* init এর baki (history নেই হলে) */
-        if (!(item.history||[]).length) {
-          /* item.baki already set above */
+        if ((item.history||[]).length === 0) {
+          /* history নেই — শুধু init entry আছে, item.baki ইতিমধ্যে সেট হয়েছে */
         } else {
+          /* history আছে — শুধু history থেকে গণনা */
+          (item.history || []).forEach(function(h) {
+            if (h.type === 'bokeyoa') totalPawna   += (h.baki || 0);
+            else if (h.type === 'joma') totalJomaSup += (h.joma || 0);
+          });
           item.baki = Math.max(0, totalPawna - totalJomaSup);
         }
       }
