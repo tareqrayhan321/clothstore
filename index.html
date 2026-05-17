@@ -845,13 +845,6 @@
         drop-shadow(1px 0 0 rgba(0,0,0,0.60))
         drop-shadow(-1px 0 0 rgba(255,200,60,0.12));
     }
-    /* আইকন ইনার শ্যাডো — card medallion */
-    .icon-shadow {
-      box-shadow:
-        3px 3px 10px rgba(0,0,0,0.7),
-        -2px -2px 6px rgba(240,180,80,0.2) inset,
-        2px 2px 6px rgba(0,0,0,0.5) inset;
-    }
     /* dark panel engraved text — সাইড মেনু ও হেডার */
     .text-engraved {
       color: rgba(60,32,8,0.92);
@@ -1254,16 +1247,70 @@
       border-radius: 13px;
       overflow: hidden;
       box-shadow: 0 2px 8px rgba(0,0,0,.10);
-      transition: border-color .15s;
+      transition: border-color .15s, box-shadow .2s, transform .15s, opacity .15s;
       flex-shrink: 0;
       contain: layout style;
+      touch-action: pan-y;
+      user-select: none;
+      -webkit-user-select: none;
     }
     .fv-card:hover { border-color: #a89880; }
+
+    /* ── ড্র্যাগ হ্যান্ডেল ── */
+    .fv-drag-handle {
+      position: absolute;
+      top: 0; left: 0;
+      width: 28px; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: grab;
+      opacity: 0;
+      transition: opacity .2s;
+      z-index: 2;
+      touch-action: none;
+    }
+    .fv-drag-handle svg { color: #a89060; pointer-events: none; }
+    .fv-card.drag-ready .fv-drag-handle { opacity: 1; }
+
+    /* ── ড্র্যাগিং অবস্থা ── */
+    .fv-card.dragging {
+      opacity: 0.88;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.40), 0 0 0 2.5px #c8961e;
+      border-color: #c8961e;
+      z-index: 999;
+      transform: scale(1.03) rotate(0.5deg);
+      background: #fdf6e8;
+      position: fixed !important;
+      pointer-events: none;
+    }
+
+    /* ── ড্রপ প্লেসহোল্ডার ── */
+    .fv-card-placeholder {
+      border-radius: 13px;
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(200,150,30,0.08),
+        rgba(200,150,30,0.08) 6px,
+        transparent 6px,
+        transparent 12px
+      );
+      border: 2px dashed rgba(200,150,30,0.45);
+      flex-shrink: 0;
+    }
+
+    /* ── লং প্রেস রিপল ── */
+    @keyframes lp-pulse {
+      0%   { box-shadow: 0 2px 8px rgba(0,0,0,.10), 0 0 0 0   rgba(200,150,30,0.55); }
+      65%  { box-shadow: 0 2px 8px rgba(0,0,0,.10), 0 0 0 10px rgba(200,150,30,0);   }
+      100% { box-shadow: 0 2px 8px rgba(0,0,0,.10), 0 0 0 0   rgba(200,150,30,0);    }
+    }
+    .fv-card.lp-pulse { animation: lp-pulse .45s ease-out; }
     .fv-card-top {
       position: relative;
-      padding: 12px 14px 10px;
+      padding: 12px 14px 10px 14px;
       cursor: pointer;
+      transition: padding-left .2s;
     }
+    .fv-card.drag-ready .fv-card-top { padding-left: 32px; }
     .fv-card-top:hover { background: rgba(0,0,0,.04); }
     .fv-card-left { min-width: 0; padding-right: 105px; }
     .fv-name { font-size: 14px; font-weight: 800; color: #2c1e0a; }
@@ -1858,16 +1905,66 @@
     .fv-card-baki-lbl {
       font-size: 11px; font-weight: 800; color: #9b2c2c;
     }
-    .fv-card-del-btn {
-      width: 28px; height: 28px; border-radius: 7px;
-      background: rgba(200,60,60,.1);
-      border: 1.5px solid rgba(200,60,60,.35);
-      color: #c03c3c;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      transition: background .18s, transform .15s;
+
+
+    /* ── লং প্রেস অ্যাকশন বার ── */
+    .fv-lp-action-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 12px 6px;
+      background: rgba(200,150,30,0.13);
+      border-radius: 10px;
+      border: 1px solid rgba(200,150,30,0.30);
+      margin: 0 2px 6px;
+      animation: lpBarIn .18s ease;
     }
-    .fv-card-del-btn:hover { background: rgba(200,60,60,.22); transform: scale(1.08); }
+    @keyframes lpBarIn {
+      from { opacity:0; transform:translateY(-6px); }
+      to   { opacity:1; transform:none; }
+    }
+    .fv-lp-action-bar.show { display: flex; }
+    .fv-lp-action-name {
+      font-size: 12px; font-weight: 800;
+      color: #3a2810;
+      flex: 1; min-width: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .fv-lp-action-btns {
+      display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+    }
+    .fv-lp-edit-btn {
+      font-family: 'Noto Sans Bengali', sans-serif;
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 12px; border-radius: 8px;
+      border: 1.5px solid rgba(184,144,42,.45);
+      background: rgba(184,144,42,.12); color: #7a5010;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+      transition: background .15s;
+    }
+    .fv-lp-edit-btn:hover { background: rgba(184,144,42,.25); }
+    .fv-lp-del-btn {
+      font-family: 'Noto Sans Bengali', sans-serif;
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 12px; border-radius: 8px;
+      border: 1.5px solid rgba(200,60,60,.45);
+      background: rgba(200,60,60,.10); color: #9b2c2c;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+      transition: background .15s;
+    }
+    .fv-lp-del-btn:hover { background: rgba(200,60,60,.22); }
+    .fv-lp-cancel-btn {
+      width: 28px; height: 28px; border-radius: 7px;
+      border: 1px solid rgba(120,90,50,.25);
+      background: rgba(120,90,50,.08); color: #7a6040;
+      font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    /* লং প্রেসে কার্ড হাইলাইট */
+    .fv-card.lp-selected {
+      border-color: rgba(200,150,30,0.70);
+      box-shadow: 0 2px 8px rgba(0,0,0,.10), 0 0 0 2px rgba(200,150,30,0.35);
+    }
 
     /* ══════════════════════════════════════
        এডিট মোড বাটন ও সেল স্টাইল
@@ -2600,6 +2697,23 @@
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
       </button>
     </div>
+
+    <!-- লং প্রেস অ্যাকশন বার — লুকানো থাকে, লং প্রেসে দেখা যায় -->
+    <div class="fv-lp-action-bar" id="fvLpActionBar">
+      <span class="fv-lp-action-name" id="fvLpActionName"></span>
+      <div class="fv-lp-action-btns">
+        <button class="fv-lp-edit-btn" id="fvLpEditBtn" onclick="_fvLpEdit()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          এডিট
+        </button>
+        <button class="fv-lp-del-btn" id="fvLpDelBtn" onclick="_fvLpDelete()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          ডিলিট
+        </button>
+        <button class="fv-lp-cancel-btn" onclick="_fvLpClear()">✕</button>
+      </div>
+    </div>
+
     <div class="fv-search-wrap">
       <input class="fv-search" id="fvSearch" type="text" placeholder="নাম বা ঠিকানা খুঁজুন..." oninput="_fvSearchDebounced()">
     </div>
@@ -2769,9 +2883,7 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     এন্ট্রি পপআপ (bottom sheet)
-══════════════════════════════════════ -->
+
 <div class="ep-overlay" id="epOverlay" onclick="if(event.target===this)epClose()">
   <div class="ep-sheet wood-panel-bg" id="epSheet">
     <div class="ep-handle"></div>
@@ -3033,7 +3145,7 @@
 
   /* ── লক টাইপ ── */
   function _alType()     { return localStorage.getItem('app_lock_type') || 'pin'; }
-  function _alIsEnabled(){ return !!localStorage.getItem('app_lock_pin') || !!localStorage.getItem('app_lock_pat'); }
+  function _alIsEnabled(){ return !!localStorage.getItem('app_lock_pin') || !!localStorage.getItem('app_lock_pat') || !!localStorage.getItem('app_lock_cred'); }
 
   /* ── মেনু সাব টেক্সট ── */
   function _alUpdateSub() {
@@ -3330,11 +3442,7 @@
         + '<button class="sl-biometric-btn" onclick="_alFaceVerifyDisable()">'
         + '<i class="fas fa-face-viewfinder"></i><span>স্ক্যান করুন</span></button>';
     }
-    localStorage.removeItem('app_lock_pin');
-    localStorage.removeItem('app_lock_pat');
-    localStorage.removeItem('app_lock_type');
-    localStorage.removeItem('app_lock_cred');
-    _alUpdateSub(); appLockClose();
+    /* লক মোছার কাজ যাচাই সফল হলে _alClearAll() এ হবে */
   }
 
   /* ══════════════════════
@@ -3820,8 +3928,7 @@
             const remote = JSON.stringify(data[k]);
             const local  = localStorage.getItem(k) || '[]';
             if (remote !== local) {
-              localStorage.setItem(k, remote);
-              _lsClear(k);
+              _lsSet(k, data[k]);
               changed = true;
             }
           });
@@ -4298,6 +4405,9 @@
   }
 
   function fvClose() {
+    _dragDeactivateReady();
+    if (_dr.active) _dragEnd();
+    _fvLpClear();
     document.getElementById('fvScreen').classList.remove('open');
     document.body.style.overflow = '';
     _fvCard = 0;
@@ -4313,6 +4423,10 @@
     const meta = EP_META[n];
     const key  = meta.key;
     const q    = (document.getElementById('fvSearch').value || '').trim().toLowerCase();
+
+    /* সার্চ চলছে — drag-ready বন্ধ করো */
+    if (q) _dragDeactivateReady();
+
     const all  = _lsGet(key);
     const list = q ? all.filter(x =>
       (x.name || '').toLowerCase().includes(q) ||
@@ -4321,14 +4435,20 @@
       (x.memo || '').toLowerCase().includes(q)
     ) : all;
 
-    /* বাকি/পাওনা অনুযায়ী সর্ট — বেশি বাকি উপরে, পরিশোধ নিচে */
-    list.sort((a, b) => {
-      const aPaid = (a.baki || 0) === 0;
-      const bPaid = (b.baki || 0) === 0;
-      if (aPaid && !bPaid) return 1;
-      if (!aPaid && bPaid) return -1;
-      return (b.baki || 0) - (a.baki || 0);
-    });
+    /* কাস্টম অর্ডার অনুযায়ী সর্ট — না থাকলে তৈরির ক্রম */
+    const orderKey = 'is_order_' + key;
+    const savedOrder = JSON.parse(localStorage.getItem(orderKey) || 'null');
+    if (savedOrder && !q) {
+      list.sort((a, b) => {
+        const ai = savedOrder.indexOf(a.id);
+        const bi = savedOrder.indexOf(b.id);
+        const av = ai === -1 ? 99999 : ai;
+        const bv = bi === -1 ? 99999 : bi;
+        return av - bv;
+      });
+    } else {
+      list.sort((a, b) => (a.id || 0) - (b.id || 0));
+    }
 
     /* সাব লেবেল */
     const totBaki = all.reduce((s, x) => s + (x.baki || 0), 0);
@@ -4461,8 +4581,11 @@
           + '</tr></thead><tbody>' + rows + '</tbody></table>';
       }
 
-      return '<div class="fv-card" id="' + cardId + '">'
-        + '<div class="fv-card-top" onclick="fvOpenDetail(' + n + ',' + item.id + ')">'
+      const DRAG_HANDLE_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>';
+
+      return '<div class="fv-card" id="' + cardId + '" data-item-id="' + item.id + '" data-cat="' + n + '">'
+        + '<div class="fv-card-top" onclick="_fvCardTap(' + n + ',' + item.id + ',event)" onpointerdown="_fvCardLpDown(event,this,' + n + ',' + item.id + ')">'
+        +   '<div class="fv-drag-handle" onpointerdown="_dragHandleDown(event,' + item.id + ')">' + DRAG_HANDLE_SVG + '</div>'
         +   '<div class="fv-card-left">'
         +     '<div class="fv-name">' + (item.name || '—') + '</div>'
         +     (item.addr ? '<div class="fv-contact-line">' + LOC_SVG + ' ' + item.addr + '</div>' : '')
@@ -4472,25 +4595,303 @@
         +     '<div class="fv-top-btns-row">'
         +       (hasMob ? '<a class="fv-phone-btn" href="tel:' + mob + '">' + TEL_SVG + '</a>' : '')
         +       (waNum  ? '<a class="fv-wa-btn" href="https://wa.me/' + waNum + '" target="_blank">' + WA_SVG + '</a>' : '')
-        +       '<button class="fv-edit-btn" onclick="fvEditOpen(' + n + ',' + item.id + ',event)" title="এডিট"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
         +     '</div>'
         +     '<div class="fv-card-del-row">'
         +       '<span class="fv-card-baki-lbl">'
         +         ((item.baki > 0) ? fmtAmt(item.baki) : ((item.bill || item.khoroch || (item.history||[]).length) ? 'পরিশোধ ✔' : ''))
         +       '</span>'
-        +       '<button class="fv-card-del-btn" onclick="fvCardDelete(' + n + ',' + item.id + ',event)" title="ডিলিট">'
-        +         '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'
-        +       '</button>'
         +     '</div>'
         +   '</div>'
         + '</div>'
         + '</div>';
     }).join('');
+
+    /* ── লং প্রেস + ড্র্যাগ সিস্টেম init ── */
+    _dragInitCards(n);
   }
 
-  /* ════════════════════════════════════
-     ডিটেইল ফুলস্ক্রিন — ফাংশন
-  ════════════════════════════════════ */
+  /* ════════════════════════════════════════════════════
+     লং প্রেস + ড্র্যাগ-টু-রিঅর্ডার সিস্টেম
+  ════════════════════════════════════════════════════ */
+  var _dr = {
+    active:      false,   /* ড্র্যাগ চলছে? */
+    cardEl:      null,    /* যে কার্ড ড্র্যাগ হচ্ছে */
+    clone:       null,    /* fixed position clone */
+    placeholder: null,    /* খালি জায়গা */
+    startY:      0,
+    offsetY:     0,       /* touch point → card top offset */
+    cardH:       0,
+    catN:        0,
+    lpTimer:     null,    /* long-press টাইমার */
+    lpItemId:    0,
+    moved:       false,
+    scrollTimer: null,
+  };
+
+  /* ── order সেভ ── */
+  function _dragSaveOrder() {
+    var body = document.getElementById('fvBody');
+    if (!body) return;
+    var cards = body.querySelectorAll('.fv-card[data-item-id]');
+    var ids = [];
+    cards.forEach(function(c) { ids.push(parseInt(c.getAttribute('data-item-id'))); });
+    var key = EP_META[_dr.catN].key;
+    localStorage.setItem('is_order_' + key, JSON.stringify(ids));
+  }
+
+  /* ── লং প্রেসে drag-ready ক্লাস সব কার্ডে ── */
+  function _dragActivateReady(itemId) {
+    var body = document.getElementById('fvBody');
+    if (!body) return;
+    body.querySelectorAll('.fv-card').forEach(function(c) {
+      c.classList.add('drag-ready');
+      c.classList.add('lp-pulse');
+      setTimeout(function() { c.classList.remove('lp-pulse'); }, 500);
+    });
+    if (navigator.vibrate) navigator.vibrate(40);
+  }
+
+  /* ── drag-ready বন্ধ করো ── */
+  function _dragDeactivateReady() {
+    var body = document.getElementById('fvBody');
+    if (!body) return;
+    body.querySelectorAll('.fv-card').forEach(function(c) {
+      c.classList.remove('drag-ready');
+    });
+  }
+
+  /* ── handle pointerdown — শুধু হ্যান্ডেলে ── */
+  function _dragHandleDown(e, itemId) {
+    e.stopPropagation();
+    e.preventDefault();
+    var card = e.currentTarget.closest('.fv-card');
+    if (!card) return;
+
+    /* drag-ready না থাকলে: long-press দিয়ে চালু করো */
+    if (!card.classList.contains('drag-ready')) {
+      _dr.lpTimer = setTimeout(function() {
+        _dragActivateReady(itemId);
+        _dragStart(card, e.clientY, itemId);
+      }, 450);
+      /* যদি আঙুল উঠে যায় তাহলে cancel */
+      function cancelLP() {
+        clearTimeout(_dr.lpTimer);
+        card.removeEventListener('pointerup', cancelLP);
+        card.removeEventListener('pointermove', cancelLP);
+      }
+      card.addEventListener('pointerup',   cancelLP, { once: true });
+      card.addEventListener('pointermove', cancelLP, { once: true });
+      return;
+    }
+
+    /* drag-ready আছে — সরাসরি drag শুরু */
+    _dragStart(card, e.clientY, itemId);
+  }
+
+  /* ── drag শুরু ── */
+  function _dragStart(card, clientY, itemId) {
+    if (_dr.active) return;
+    _dr.active  = true;
+    _dr.cardEl  = card;
+    _dr.catN    = _fvCard;
+    _dr.moved   = false;
+
+    var rect    = card.getBoundingClientRect();
+    _dr.cardH   = rect.height;
+    _dr.offsetY = clientY - rect.top;
+    _dr.startY  = clientY;
+
+    /* placeholder বানাই */
+    var ph = document.createElement('div');
+    ph.className = 'fv-card-placeholder';
+    ph.style.height = _dr.cardH + 'px';
+    card.parentNode.insertBefore(ph, card);
+    _dr.placeholder = ph;
+
+    /* card fixed করি */
+    card.classList.add('dragging');
+    card.style.width  = rect.width  + 'px';
+    card.style.left   = rect.left   + 'px';
+    card.style.top    = (clientY - _dr.offsetY) + 'px';
+
+    document.addEventListener('pointermove', _dragMove, { passive: false });
+    document.addEventListener('pointerup',   _dragEnd);
+    document.addEventListener('pointercancel', _dragEnd);
+  }
+
+  /* ── drag মুভ ── */
+  function _dragMove(e) {
+    if (!_dr.active) return;
+    e.preventDefault();
+    var y = e.clientY;
+    _dr.moved = true;
+
+    /* কার্ড সরাই */
+    _dr.cardEl.style.top = (y - _dr.offsetY) + 'px';
+
+    /* placeholder কোথায় যাবে খুঁজি */
+    var body  = document.getElementById('fvBody');
+    if (!body) return;
+    var cards = Array.from(body.querySelectorAll('.fv-card[data-item-id]:not(.dragging)'));
+    var ph    = _dr.placeholder;
+    var placed = false;
+
+    for (var i = 0; i < cards.length; i++) {
+      var r = cards[i].getBoundingClientRect();
+      var mid = r.top + r.height / 2;
+      if (y < mid) {
+        body.insertBefore(ph, cards[i]);
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) body.appendChild(ph);
+
+    /* অটো স্ক্রল */
+    var bodyRect = body.getBoundingClientRect();
+    clearInterval(_dr.scrollTimer);
+    if (y > bodyRect.bottom - 60) {
+      _dr.scrollTimer = setInterval(function() { body.scrollTop += 6; }, 16);
+    } else if (y < bodyRect.top + 60) {
+      _dr.scrollTimer = setInterval(function() { body.scrollTop -= 6; }, 16);
+    }
+  }
+
+  /* ── drag শেষ ── */
+  function _dragEnd(e) {
+    if (!_dr.active) return;
+    _dr.active = false;
+    clearInterval(_dr.scrollTimer);
+    document.removeEventListener('pointermove', _dragMove);
+    document.removeEventListener('pointerup',   _dragEnd);
+    document.removeEventListener('pointercancel', _dragEnd);
+
+    var card = _dr.cardEl;
+    var ph   = _dr.placeholder;
+
+    /* fixed → normal */
+    card.classList.remove('dragging');
+    card.style.position = '';
+    card.style.width    = '';
+    card.style.left     = '';
+    card.style.top      = '';
+
+    /* placeholder এর জায়গায় কার্ড বসাই */
+    if (ph && ph.parentNode) {
+      ph.parentNode.insertBefore(card, ph);
+      ph.parentNode.removeChild(ph);
+    }
+    _dr.placeholder = null;
+    _dr.cardEl      = null;
+
+    /* order সেভ */
+    _dragSaveOrder();
+    notifPush('success', 'ফোল্ডারের ক্রম সেভ হয়েছে।');
+  }
+
+  /* ── fvBody click outside → drag-ready বন্ধ ── */
+  document.addEventListener('pointerdown', function(e) {
+    if (_dr.active) return;
+    var body = document.getElementById('fvBody');
+    if (!body) return;
+    /* drag handle নয় এমন জায়গায় ক্লিক করলে drag-ready off */
+    if (!e.target.closest('.fv-drag-handle') && body.querySelector('.fv-card.drag-ready')) {
+      _dragDeactivateReady();
+    }
+  }, true);
+
+  /* ── render এর পরে existing drag-ready state ধরে রাখি ── */
+  function _dragInitCards(n) {
+    /* সার্চ চালু থাকলে drag handle দেখাবো না */
+    var q = (document.getElementById('fvSearch')?.value || '').trim();
+    if (q) return;
+    /* আগে drag-ready ছিল কিনা — restore করবো না, user নতুন করে করুক */
+  }
+
+  /* ══════════════════════════════════════════
+     কার্ড লং প্রেস → হেডার অ্যাকশন বার
+  ══════════════════════════════════════════ */
+  var _fvLpTimer   = null;
+  var _fvLpSelN    = 0;
+  var _fvLpSelId   = 0;
+  var _fvLpSelCard = null;
+
+  function _fvCardLpDown(e, cardEl, n, itemId) {
+    /* drag handle এ চাপলে লং প্রেস না */
+    if (e.target.closest('.fv-drag-handle')) return;
+    var startX = e.clientX, startY = e.clientY;
+
+    _fvLpTimer = setTimeout(function() {
+      document.removeEventListener('pointermove', cancelMove);
+      document.removeEventListener('pointerup',   cancelUp);
+      document.removeEventListener('pointercancel', cancelUp);
+      _fvLpSelect(n, itemId, cardEl);
+    }, 450);
+
+    function cancelMove(ev) {
+      var dx = ev.clientX - startX, dy = ev.clientY - startY;
+      if (Math.sqrt(dx*dx + dy*dy) > 8) cancelUp();
+    }
+    function cancelUp() {
+      clearTimeout(_fvLpTimer);
+      document.removeEventListener('pointermove', cancelMove);
+      document.removeEventListener('pointerup',   cancelUp);
+      document.removeEventListener('pointercancel', cancelUp);
+    }
+    document.addEventListener('pointermove',   cancelMove);
+    document.addEventListener('pointerup',     cancelUp, { once: true });
+    document.addEventListener('pointercancel', cancelUp, { once: true });
+  }
+
+  function _fvCardTap(n, itemId, e) {
+    /* লং প্রেস সিলেক্ট অবস্থায় ট্যাপ করলে clear করো, detail খুলো না */
+    if (_fvLpSelId) { _fvLpClear(); return; }
+    fvOpenDetail(n, itemId);
+  }
+
+  function _fvLpSelect(n, itemId, cardEl) {
+    /* আগেরটা clear করো */
+    if (_fvLpSelCard) _fvLpSelCard.classList.remove('lp-selected');
+
+    _fvLpSelN    = n;
+    _fvLpSelId   = itemId;
+    _fvLpSelCard = cardEl;
+    cardEl.classList.add('lp-selected');
+    if (navigator.vibrate) navigator.vibrate(40);
+
+    /* নাম দেখাই */
+    var key  = EP_META[n].key;
+    var list = _lsGet(key);
+    var item = list.find(function(x){ return x.id === itemId; });
+    var bar  = document.getElementById('fvLpActionBar');
+    var nameEl = document.getElementById('fvLpActionName');
+    if (nameEl) nameEl.textContent = (item && item.name) ? item.name : '';
+    if (bar) bar.classList.add('show');
+  }
+
+  function _fvLpClear() {
+    if (_fvLpSelCard) _fvLpSelCard.classList.remove('lp-selected');
+    _fvLpSelN = 0; _fvLpSelId = 0; _fvLpSelCard = null;
+    var bar = document.getElementById('fvLpActionBar');
+    if (bar) bar.classList.remove('show');
+  }
+
+  function _fvLpEdit() {
+    if (!_fvLpSelN || !_fvLpSelId) return;
+    var n = _fvLpSelN, id = _fvLpSelId;
+    _fvLpClear();
+    /* fvEditOpen এ evt লাগে — dummy event দিই */
+    fvEditOpen(n, id, { stopPropagation: function(){} });
+  }
+
+  function _fvLpDelete() {
+    if (!_fvLpSelN || !_fvLpSelId) return;
+    var n = _fvLpSelN, id = _fvLpSelId;
+    _fvLpClear();
+    fvCardDelete(n, id, { stopPropagation: function(){} });
+  }
+
+
   let _detailN = 0, _detailId = 0;
 
   function fvOpenDetail(n, itemId) {
@@ -4876,6 +5277,10 @@
 
   function fvEditOpen(n, id, evt) {
     evt.stopPropagation();
+    _fvEditOpenDo(n, id);
+  }
+
+  function _fvEditOpenDo(n, id) {
     const key  = EP_META[n].key;
     const list = _lsGet(key);
     const item = list.find(x => x.id === id);
@@ -5162,6 +5567,10 @@
   var _detailEditActive = false;
 
   function fvDetailToggleEditMode(n, itemId, btn) {
+    _fvDetailToggleDo(n, itemId, btn);
+  }
+
+  function _fvDetailToggleDo(n, itemId, btn) {
     var wrap = document.querySelector('#fvDetailBody .fv-excel-wrap');
     if (!wrap) return;
     var table = wrap.querySelector('.fv-excel');
@@ -5307,6 +5716,10 @@
   var _dlEditActive = false;
 
   function dlToggleEditMode(btn) {
+    _dlToggleDo(btn);
+  }
+
+  function _dlToggleDo(btn) {
     var wrap = document.getElementById('dlTableWrap');
     if (!wrap) return;
     var table = wrap.querySelector('.fv-excel');
