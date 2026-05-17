@@ -4907,33 +4907,6 @@
     const mob = (item.mob || '').trim();
     const hasMob = mob.length > 0;
 
-    /* ── পুরনো ডেটা repair: item.bill যদি history bill এর চেয়ে বড় হয়ে গিয়ে থাকে ── */
-    if (isCustomer && (item.history||[]).length > 0) {
-      var _initBill = item.bill || 0;
-      var _histBill = 0;
-      item.history.forEach(function(h){ if (h.type==='bokeyoa') _histBill += (h.bill||0); });
-      /* init bill টা শুধু প্রথম এন্ট্রির, history bill আলাদা — তাই item.bill > init হওয়ার কথা নেই */
-      /* কিন্তু বাগের কারণে item.bill এ history bill জমে গিয়ে থাকলে সংশোধন করি */
-      if (_initBill > _histBill && _histBill > 0) {
-        /* item.bill টা শুধু প্রথম এন্ট্রির পরিমাণ হওয়া উচিত — history যোগ বাদ দিই */
-        var _repaired = _initBill - _histBill;
-        if (_repaired >= 0) {
-          item.bill = _repaired;
-          /* baki পুনর্গণনা */
-          var _tb = _repaired, _tj = item.joma || 0;
-          item.history.forEach(function(h){
-            if (h.type==='bokeyoa') _tb += (h.bill||0);
-            else if (h.type==='joma') _tj += (h.joma||0);
-          });
-          item.baki = Math.max(0, _tb - _tj);
-          /* repair করা ডেটা save করি */
-          var _rList = _lsGet(meta.key);
-          var _rIdx  = _rList.findIndex(function(x){ return x.id === itemId; });
-          if (_rIdx >= 0) { _rList[_rIdx].bill = item.bill; _rList[_rIdx].baki = item.baki; _lsSet(meta.key, _rList); }
-        }
-      }
-    }
-
     /* হেডারে নাম ও মেটা */
     document.getElementById('fvDetailName').textContent = item.name || '—';
     var metaParts = [];
@@ -5230,11 +5203,16 @@
     var goj   = (document.getElementById('dmb-goj-'   + parentId)?.value || '').trim();
     var bill  = parseFloat(document.getElementById('dmb-bill-'  + parentId)?.value) || 0;
     var note  = (document.getElementById('dmb-note-'  + parentId)?.value || '').trim();
-    var newBaki = Math.max(0, bill);
-    list[idx].baki  = (list[idx].baki || 0) + newBaki;
-    /* item.bill শুধু প্রাথমিক এন্ট্রি — history[] এ নতুন বকেয়া যোগ হয়, item.bill আর বাড়ানো হয় না */
     if (!list[idx].history) list[idx].history = [];
-    list[idx].history.push({ type:'bokeyoa', memo, date, bill, baki: newBaki, note, goj, ts: Date.now() });
+    list[idx].history.push({ type:'bokeyoa', memo, date, bill, baki: bill, note, goj, ts: Date.now() });
+    /* history থেকে সম্পূর্ণ recalculate — কোনো accumulation নেই */
+    var _tb = list[idx].bill || 0;
+    var _tj = list[idx].joma || 0;
+    list[idx].history.forEach(function(h) {
+      if (h.type === 'bokeyoa') _tb += (h.bill || 0);
+      else if (h.type === 'joma') _tj += (h.joma || 0);
+    });
+    list[idx].baki = Math.max(0, _tb - _tj);
     _lsSet(key, list);
     epRender(n);
     fvOpenDetail(n, parentId); /* রিফ্রেশ */
@@ -5252,10 +5230,16 @@
     var date = document.getElementById('dmj-date-' + parentId)?.value || new Date().toISOString().slice(0,10);
     var joma = parseFloat(document.getElementById('dmj-joma-' + parentId)?.value) || 0;
     var note = (document.getElementById('dmj-note-' + parentId)?.value || '').trim();
-    list[idx].joma = (list[idx].joma || 0) + joma;
-    list[idx].baki = Math.max(0, (list[idx].baki || 0) - joma);
     if (!list[idx].history) list[idx].history = [];
     list[idx].history.push({ type:'joma', memo, date, joma, note, ts: Date.now() });
+    /* history থেকে সম্পূর্ণ recalculate */
+    var _tb = list[idx].bill || 0;
+    var _tj = list[idx].joma || 0;
+    list[idx].history.forEach(function(h) {
+      if (h.type === 'bokeyoa') _tb += (h.bill || 0);
+      else if (h.type === 'joma') _tj += (h.joma || 0);
+    });
+    list[idx].baki = Math.max(0, _tb - _tj);
     _lsSet(key, list);
     epRender(n);
     fvOpenDetail(n, parentId);
@@ -5274,9 +5258,18 @@
     var goj   = (document.getElementById('dmb-goj-'  + parentId)?.value || '').trim();
     var pawna = parseFloat(document.getElementById('dmb-baki-' + parentId)?.value) || 0;
     var note  = (document.getElementById('dmb-note-' + parentId)?.value || '').trim();
-    list[idx].baki = (list[idx].baki || 0) + pawna;
     if (!list[idx].history) list[idx].history = [];
     list[idx].history.push({ type:'bokeyoa', memo, date, baki: pawna, note, goj, ts: Date.now() });
+    /* history থেকে সম্পূর্ণ recalculate
+       supplier init: item.baki = প্রথম পাওনা - প্রথম জমা
+       history: পরবর্তী সব entry */
+    var _tp = (list[idx].baki || 0) + (list[idx].joma || 0); /* init pawna = baki + joma */
+    var _tjs = list[idx].joma || 0;                           /* init joma */
+    list[idx].history.forEach(function(h) {
+      if (h.type === 'bokeyoa') _tp  += (h.baki || 0);
+      else if (h.type === 'joma') _tjs += (h.joma || 0);
+    });
+    list[idx].baki = Math.max(0, _tp - _tjs);
     _lsSet(key, list);
     epRender(n);
     fvOpenDetail(n, parentId);
@@ -5294,9 +5287,16 @@
     var date = document.getElementById('dmj-date-' + parentId)?.value || new Date().toISOString().slice(0,10);
     var joma = parseFloat(document.getElementById('dmj-joma-' + parentId)?.value) || 0;
     var note = (document.getElementById('dmj-note-' + parentId)?.value || '').trim();
-    list[idx].baki = Math.max(0, (list[idx].baki || 0) - joma);
     if (!list[idx].history) list[idx].history = [];
     list[idx].history.push({ type:'joma', memo, date, joma, note, ts: Date.now() });
+    /* history থেকে সম্পূর্ণ recalculate */
+    var _tp2 = (list[idx].baki || 0) + (list[idx].joma || 0);
+    var _tjs2 = list[idx].joma || 0;
+    list[idx].history.forEach(function(h) {
+      if (h.type === 'bokeyoa') _tp2  += (h.baki || 0);
+      else if (h.type === 'joma') _tjs2 += (h.joma || 0);
+    });
+    list[idx].baki = Math.max(0, _tp2 - _tjs2);
     _lsSet(key, list);
     epRender(n);
     fvOpenDetail(n, parentId);
@@ -5578,12 +5578,25 @@
     var idx  = list.findIndex(function(x){ return x.id === _dlJomaItemId; });
     if (idx < 0) return;
     var isCustomer = EP_META[_dlJomaCat].type === 'customer';
-    if (isCustomer) {
-      list[idx].joma = (list[idx].joma || 0) + joma;
-    }
-    list[idx].baki = Math.max(0, (list[idx].baki || 0) - joma);
     if (!list[idx].history) list[idx].history = [];
     list[idx].history.push({ type:'joma', memo: memo, date: date, joma: joma, note: note, ts: Date.now() });
+    /* history থেকে সম্পূর্ণ recalculate */
+    if (isCustomer) {
+      var _tb = list[idx].bill || 0;
+      var _tj = list[idx].joma || 0;
+      list[idx].history.forEach(function(h) {
+        if (h.type === 'bokeyoa') _tb += (h.bill || 0);
+        else if (h.type === 'joma') _tj += (h.joma || 0);
+      });
+      list[idx].baki = Math.max(0, _tb - _tj);
+    } else {
+      var _tp3 = 0, _tjs3 = 0;
+      list[idx].history.forEach(function(h) {
+        if (h.type === 'bokeyoa') _tp3  += (h.baki || 0);
+        else if (h.type === 'joma') _tjs3 += (h.joma || 0);
+      });
+      list[idx].baki = Math.max(0, _tp3 - _tjs3);
+    }
     _lsSet(key, list);
     epRender(_dlJomaCat);
     dlJomaClose();
