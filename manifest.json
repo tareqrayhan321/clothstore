@@ -1,0 +1,28 @@
+{
+  "name": "ইমরান ক্লথ স্টোর",
+  "short_name": "ক্লথ স্টোর",
+  "description": "ইমরান ক্লথ স্টোরের হিসাব ব্যবস্থাপনা অ্যাপ",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1e1008",
+  "theme_color": "#c8961e",
+  "lang": "bn",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "finance"],
+  "screenshots": []
+}
