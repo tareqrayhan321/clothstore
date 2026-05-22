@@ -1117,6 +1117,24 @@
     }
     .ep-mob-wrap .ep-inp { border: none; border-radius: 0; padding-left: 5px; box-shadow: none !important; flex: 1; background: transparent; }
     .ep-mob-wrap .ep-inp:focus { border: none; box-shadow: none; background: transparent; }
+    .ep-foot {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-top: 2px;
+    }
+    .ep-back-btn {
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1.5px solid rgba(184,144,42,.35);
+      background: rgba(240,232,208,.7);
+      color: #6a4a1a;
+      font-size: 16px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+      box-shadow: 0 2px 6px rgba(0,0,0,.12);
+      flex-shrink: 0;
+    }
+    .ep-back-btn:hover { background: rgba(220,180,80,.25); border-color: var(--gold2); }
     .ep-save-btn {
       font-family: 'Noto Sans Bengali', sans-serif;
       padding: 9px 20px; border-radius: 9px;
@@ -1124,16 +1142,29 @@
       background: var(--gold2); color: var(--ink);
       font-size: 13px; font-weight: 700; cursor: pointer;
       display: flex; align-items: center; gap: 6px;
-      align-self: flex-end;
       transition: background .15s;
       box-shadow: 0 2px 8px rgba(184,144,42,.25);
     }
     .ep-save-btn:hover { background: #f0cc70; }
 
+    /* ফুলস্ক্রিন খোলা থাকলে tab bar লুকাই */
+    body:has(.fv-screen.open) .bottom-tab-bar,
+    body:has(.fv-detail-screen.open) .bottom-tab-bar,
+    body:has(.screen-lock-overlay.active) .bottom-tab-bar {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(100%);
+      transition: opacity .2s, transform .25s;
+    }
+    .bottom-tab-bar {
+      transition: opacity .2s, transform .25s;
+    }
+
     /* যেকোনো fullscreen খোলা থাকলে home card animation pause — GPU লোড কমায় */
     .fv-screen.open ~ .main .icon-medallion::before,
     body:has(.fv-screen.open) .icon-medallion::before,
     body:has(.dl-screen.open) .icon-medallion::before,
+    body.show-ledger .icon-medallion::before,
     body:has(.fv-detail-screen.open) .icon-medallion::before,
     body:has(.ep-overlay.open) .icon-medallion::before,
     body:has(.screen-lock-overlay.active) .icon-medallion::before {
@@ -1145,6 +1176,7 @@
       display: flex;
       position: fixed; inset: 0;
       z-index: 800;
+      isolation: isolate;
       flex-direction: column;
       overflow: hidden;
       height: 100dvh;
@@ -1370,24 +1402,30 @@
     .dl-screen {
       display: flex;
       position: fixed; inset: 0;
-      z-index: 800;
+      z-index: 200;
       flex-direction: column;
       overflow: hidden;
       height: 100dvh;
       background-color: #f0e8d0;
       background-image: none;
       transform: translateX(100%);
-      transition: transform .25s cubic-bezier(.2,.8,.3,1);
-      will-change: auto;
+      transition: transform .30s cubic-bezier(.3,.9,.25,1);
+      will-change: transform;
       pointer-events: none;
       visibility: hidden;
-      contain: layout style paint;
+      isolation: auto;
     }
+    /* body.show-ledger হলে dl-screen দেখা যাবে */
+    body.show-ledger .dl-screen {
+      transform: translateX(0);
+      pointer-events: auto;
+      visibility: visible;
+    }
+    /* dl-screen open থাকলে পুরনো .open class backward compat */
     .dl-screen.open {
       transform: translateX(0);
       pointer-events: auto;
       visibility: visible;
-      will-change: transform;
     }
 
     .dl-header {
@@ -2387,7 +2425,248 @@
     }
     .sl-alt-btn:hover { background: rgba(200,150,30,.12); }
 
-  </style>
+  
+    /* ═══════════════════════════════
+       FV INLINE ENTRY BUTTON + FORM
+    ═══════════════════════════════ */
+    .fv-entry-btn {
+      font-family: 'Noto Sans Bengali', sans-serif;
+      display: flex; align-items: center; gap: 5px;
+      padding: 7px 12px;
+      border-radius: 9px;
+      border: 1.5px solid rgba(184,144,42,.50);
+      background: linear-gradient(160deg, #2e1a08 0%, #200e04 50%, #180c04 100%);
+      color: #e8c060;
+      font-size: 12px; font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,.50), 0 1px 0 rgba(220,170,50,.20) inset;
+      transition: background .18s, box-shadow .18s;
+      flex-shrink: 0;
+    }
+    .fv-entry-btn:hover {
+      background: linear-gradient(160deg, #3c2410 0%, #2c1208 50%, #200e06 100%);
+      box-shadow: 0 3px 12px rgba(0,0,0,.65), 0 1px 0 rgba(220,170,50,.30) inset;
+    }
+    .fv-entry-btn.active {
+      background: linear-gradient(160deg, rgba(200,150,30,.20) 0%, rgba(180,130,20,.15) 100%);
+      border-color: rgba(200,150,30,.70);
+      color: #f5d06e;
+    }
+
+    /* ── ইনলাইন ফর্ম র‍্যাপার / এন্ট্রি ফর্ম পপআপ ── */
+    .fv-inline-form {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 850;
+      /* উপর থেকে slide down */
+      transform: translateY(-100%);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform .28s cubic-bezier(.3,.9,.25,1), opacity .20s ease;
+      /* কার্ড স্টাইল */
+      background: linear-gradient(180deg, #f5ede0 0%, #ede4d0 100%);
+      border-bottom: 1.5px solid rgba(184,144,42,.35);
+      box-shadow: 0 8px 32px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.30);
+      border-radius: 0 0 16px 16px;
+      padding: 14px 14px 16px;
+    }
+    .fv-inline-form.visible {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    /* backdrop — ফর্মের নিচে অন্ধকার */
+    .fv-form-backdrop {
+      position: absolute;
+      inset: 0;
+      z-index: 840;
+      background: rgba(0,0,0,0);
+      pointer-events: none;
+      transition: background .25s;
+    }
+    .fv-form-backdrop.visible {
+      background: rgba(0,0,0,.45);
+      pointer-events: auto;
+    }
+    .fv-inline-form-inner .ep-form-box {
+      background: transparent;
+      padding: 0;
+      border: none;
+      box-shadow: none;
+    }
+    .fv-inline-form-inner .ep-row {
+      display: flex; gap: 8px; margin-bottom: 8px;
+    }
+    .fv-inline-form-inner .ep-field {
+      flex: 1; min-width: 0;
+      position: relative; margin-top: 8px;
+    }
+    .fv-inline-form-inner .ep-field fieldset {
+      border: 1.5px solid rgba(184,144,42,.35);
+      border-radius: 8px;
+      background: #f5efe0;
+      padding: 0; margin: 0;
+      transition: border-color .15s;
+    }
+    .fv-inline-form-inner .ep-field fieldset:focus-within {
+      border-color: var(--gold2);
+      box-shadow: 0 0 0 2px rgba(200,150,30,.10);
+    }
+    .fv-inline-form-inner .ep-field legend {
+      font-size: 10px; color: var(--gold); font-weight: 700;
+      padding: 0; max-width: 0; overflow: hidden; white-space: nowrap;
+      transition: max-width .18s, padding .18s;
+    }
+    .fv-inline-form-inner .ep-field fieldset:focus-within legend,
+    .fv-inline-form-inner .ep-field.has-val legend {
+      max-width: fit-content; padding: 0 4px;
+    }
+    .fv-inline-form-inner .ep-label {
+      position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+      font-size: 11.5px; font-weight: 500; color: #9a8060;
+      pointer-events: none;
+      transition: top .18s, transform .18s, font-size .18s, color .18s;
+      line-height: 1;
+    }
+    .fv-inline-form-inner .ep-field fieldset:focus-within ~ .ep-label,
+    .fv-inline-form-inner .ep-field.has-val .ep-label {
+      top: 0; transform: translateY(-50%);
+      font-size: 10px; font-weight: 700; color: var(--gold); left: 11px;
+    }
+    .fv-inline-form-inner .ep-inp {
+      font-family: 'Noto Sans Bengali', sans-serif;
+      padding: 9px 9px 8px;
+      border: none; outline: none;
+      font-size: 13px; color: #2c1e0a;
+      background: transparent;
+      width: 100%; border-radius: 7px; display: block;
+    }
+    .fv-inline-form-inner .ep-inp.amt { text-align: right; }
+    .fv-inline-form-inner .ep-mob-wrap {
+      display: flex; align-items: center;
+      border: 1.5px solid rgba(184,144,42,.35);
+      border-radius: 8px; background: #f5efe0; overflow: hidden;
+      transition: border-color .15s;
+    }
+    .fv-inline-form-inner .ep-mob-wrap:focus-within { border-color: var(--gold2); }
+    .fv-inline-form-inner .ep-mob-prefix {
+      font-size: 12px; font-weight: 700; color: #9a8060;
+      padding: 0 5px 0 9px; white-space: nowrap; flex-shrink: 0;
+      position: relative; line-height: 1; align-self: stretch;
+      display: flex; align-items: center;
+    }
+    .fv-inline-form-inner .ep-mob-prefix::after {
+      content: '';
+      position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+      width: 1px; height: 18px;
+      background: linear-gradient(to bottom,
+        rgba(184,144,42,.55) 0px, rgba(184,144,42,.55) 4px,
+        transparent 4px, transparent 7px,
+        rgba(184,144,42,.55) 7px, rgba(184,144,42,.55) 11px,
+        transparent 11px, transparent 14px,
+        rgba(184,144,42,.55) 14px, rgba(184,144,42,.55) 18px);
+    }
+    .fv-inline-form-inner .ep-mob-wrap .ep-inp {
+      border: none; border-radius: 0; padding-left: 5px; box-shadow: none !important;
+      flex: 1; background: transparent;
+    }
+    .fv-inline-form-inner .ep-save-btn {
+      font-family: 'Noto Sans Bengali', sans-serif;
+      padding: 9px 20px; border-radius: 9px;
+      border: 1.5px solid rgba(184,144,42,.4);
+      background: var(--gold2); color: var(--ink);
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      align-self: flex-end;
+      transition: background .15s;
+      box-shadow: 0 2px 8px rgba(184,144,42,.25);
+      margin-top: 4px;
+    }
+    .fv-inline-form-inner .ep-save-btn:hover { background: #f0cc70; }
+
+
+    /* ═══════════════════════════════
+       BOTTOM TAB BAR — ফ্লোটিং
+    ═══════════════════════════════ */
+    .bottom-tab-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 300;
+      display: flex;
+      align-items: stretch;
+      height: 68px;
+      background:
+        var(--wood-grain-fine),
+        var(--wood-grain-wide),
+        linear-gradient(180deg, #1c0f06 0%, #130a03 100%);
+      border-top: 1px solid rgba(200,150,30,0.30);
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.60);
+      /* safe area — notch phone */
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    .bottom-tab-bar::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg,
+        rgba(255,200,80,0.06) 0%,
+        transparent 60%);
+      pointer-events: none;
+    }
+
+    .btab-btn {
+      font-family: 'Noto Sans Bengali', sans-serif;
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 10px 8px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: rgba(180,140,50,0.55);
+      letter-spacing: 0.1px;
+      transition: color .18s;
+      -webkit-tap-highlight-color: transparent;
+      z-index: 1;
+    }
+    .btab-btn svg {
+      transition: transform .18s, opacity .18s;
+      opacity: 0.55;
+    }
+    .btab-btn:active { opacity: 0.7; }
+
+    .btab-btn.active {
+      color: #e8b840;
+    }
+    .btab-btn.active svg {
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+    /* active — নিচে গোল্ড ডট */
+    .btab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: #e8b840;
+      box-shadow: 0 0 6px rgba(232,184,64,0.80);
+    }
+    /* main-এ নিচে এক্সট্রা padding — tab bar এর জায়গা */
+    .main { padding-bottom: 80px; }
+    /* dl-screen body-ও padding দিতে হবে */
+    .dl-body { padding-bottom: 80px; }
+
+</style>
 </head>
 <body>
 
@@ -2687,9 +2966,31 @@
 </main>
 
 <!-- ══════════════════════════════════════
+     BOTTOM TAB BAR — ফ্লোটিং নেভিগেশন
+══════════════════════════════════════ -->
+<div class="bottom-tab-bar" id="bottomTabBar">
+  <button class="btab-btn active" id="btabHome" onclick="btabSwitch('home')">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>হোম</span>
+  </button>
+  <button class="btab-btn" id="btabLedger" onclick="btabSwitch('ledger')">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span>পার্টি</span>
+  </button>
+</div>
+
+<!-- ══════════════════════════════════════
      ফুল স্ক্রিন লিস্ট ভিউ
 ══════════════════════════════════════ -->
 <div class="fv-screen wood-panel-bg" id="fvScreen">
+
+  <!-- এন্ট্রি ফর্ম পপআপ backdrop -->
+  <div class="fv-form-backdrop" id="fvFormBackdrop" onclick="fvToggleEntryForm()"></div>
+
+  <!-- এন্ট্রি ফর্ম পপআপ — উপর থেকে slide down -->
+  <div class="fv-inline-form" id="fvInlineForm">
+    <div class="fv-inline-form-inner" id="fvInlineFormInner"></div>
+  </div>
 
   <!-- হেডার -->
   <div class="fv-header">
@@ -2701,9 +3002,15 @@
           <div class="fv-hdr-sub"   id="fvHdrSub"></div>
         </div>
       </div>
-      <button class="fv-back-btn" onclick="fvClose()">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
-      </button>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button class="fv-entry-btn" id="fvEntryBtn" onclick="fvToggleEntryForm()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          নতুন এন্ট্রি
+        </button>
+        <button class="fv-back-btn" onclick="fvClose()">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
+        </button>
+      </div>
     </div>
 
     <!-- লং প্রেস অ্যাকশন বার — লুকানো থাকে, লং প্রেসে দেখা যায় -->
@@ -2761,9 +3068,6 @@
   <!-- হেডার -->
   <div class="dl-header">
     <div class="dl-hdr-top">
-      <button class="fv-back-btn" onclick="dlClose()" title="ব্যাক">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
       <div class="dl-hdr-icon">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
       </div>
@@ -2802,9 +3106,7 @@
         <span class="dl-foot-lbl">মোট বকেয়া</span>
         <span class="dl-foot-val" id="dlFootBokea">৳০</span>
       </div>
-      <button class="tbl-edit-mode-btn" id="dlEditModeBtn" onclick="dlToggleEditMode(this)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      </button>
+
     </div>
   </div>
 
@@ -2876,7 +3178,7 @@
       </div>
       <div class="fv-edit-field">
         <div class="fv-edit-mob-wrap">
-          <span class="fv-edit-mob-prefix">+880</span>
+          <span class="fv-edit-mob-prefix">+88</span>
           <input class="fv-edit-inp" id="fvEditMob" type="tel" inputmode="numeric" placeholder=" ">
         </div>
       </div>
@@ -2920,56 +3222,6 @@
     <button class="menu-close-btn" onclick="closeMenu()">✕</button>
   </div>
   <div class="side-menu-body">
-
-    <button class="menu-item" onclick="epOpen(1);closeMenu()">
-      <span class="menu-item-icon">
-        <i class="fas fa-users" style="font-size:18px;color:#b07828" class="engrave-filter"></i>
-      </span>
-      <div>
-        <div class="menu-item-label text-engraved">রেগুলার কাস্টমার এন্ট্রি</div>
-        <div class="menu-item-sub">নতুন কাস্টমার যোগ করুন</div>
-      </div>
-    </button>
-
-    <button class="menu-item" onclick="epOpen(2);closeMenu()">
-      <span class="menu-item-icon">
-        <i class="fas fa-user-minus" style="font-size:18px;color:#b07828" class="engrave-filter"></i>
-      </span>
-      <div>
-        <div class="menu-item-label text-engraved">ইর-রেগুলার কাস্টমার এন্ট্রি</div>
-        <div class="menu-item-sub">নতুন কাস্টমার যোগ করুন</div>
-      </div>
-    </button>
-
-    <button class="menu-item" onclick="epOpen(3);closeMenu()">
-      <span class="menu-item-icon">
-        <i class="fas fa-truck" style="font-size:18px;color:#b07828" class="engrave-filter"></i>
-      </span>
-      <div>
-        <div class="menu-item-label text-engraved">রেগুলার মহাজন এন্ট্রি</div>
-        <div class="menu-item-sub">নতুন মহাজন যোগ করুন</div>
-      </div>
-    </button>
-
-    <button class="menu-item" onclick="epOpen(4);closeMenu()">
-      <span class="menu-item-icon">
-        <i class="fas fa-truck-loading" style="font-size:18px;color:#b07828" class="engrave-filter"></i>
-      </span>
-      <div>
-        <div class="menu-item-label text-engraved">ইর-রেগুলার মহাজন এন্ট্রি</div>
-        <div class="menu-item-sub">নতুন মহাজন যোগ করুন</div>
-      </div>
-    </button>
-
-    <button class="menu-item" onclick="dlOpen();closeMenu()">
-      <span class="menu-item-icon">
-        <i class="fas fa-list-alt" style="font-size:18px;color:#b07828"></i>
-      </span>
-      <div>
-        <div class="menu-item-label text-engraved">Party Ledger</div>
-        <div class="menu-item-sub">সকল দেনাদার/পাওনাদার পার্টির তালিকা</div>
-      </div>
-    </button>
 
     <button class="menu-item" onclick="appLockOpen();closeMenu()">
       <span class="menu-item-icon">
@@ -3081,7 +3333,7 @@
     <div class="screen-lock-sub" id="slSub">পাসওয়ার্ড দিয়ে প্রবেশ করুন</div>
 
     <!-- পিন মোড -->
-    <div id="slPinSection">
+    <div id="slPinSection" style="position:relative;" onclick="_slFocusPinInput()">
       <div class="screen-lock-pin-row" id="screenLockPinRow">
         <span class="pin-dot" id="pd0"></span>
         <span class="pin-dot" id="pd1"></span>
@@ -3090,7 +3342,7 @@
       </div>
       <div class="screen-lock-error" id="screenLockError"></div>
       <input id="slHiddenInput" type="number" inputmode="numeric" pattern="[0-9]*" maxlength="4"
-        style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;top:0;left:0;"
+        style="position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;border:none;outline:none;background:transparent;color:transparent;caret-color:transparent;font-size:16px;-webkit-user-select:none;"
         autocomplete="one-time-code"
         oninput="slPinInputHandler(this)">
     </div>
@@ -3127,6 +3379,27 @@
       clearTimeout(t);
       t = setTimeout(fn, ms);
     };
+  }
+
+  /* ══════════════════════════════════════
+     BOTTOM TAB BAR — TAB SWITCH লজিক
+  ══════════════════════════════════════ */
+  function btabSwitch(tab) {
+    var homeBtn   = document.getElementById('btabHome');
+    var ledgerBtn = document.getElementById('btabLedger');
+    if (!homeBtn || !ledgerBtn) return;
+    if (tab === 'ledger') {
+      document.body.classList.add('show-ledger');
+      ledgerBtn.classList.add('active');
+      homeBtn.classList.remove('active');
+      dlRender();
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.classList.remove('show-ledger');
+      homeBtn.classList.add('active');
+      ledgerBtn.classList.remove('active');
+      document.body.style.overflow = '';
+    }
   }
 
   /* ── মেনু toggle ── */
@@ -3634,9 +3907,8 @@
       if(sub) sub.textContent='পিন দিয়ে প্রবেশ করুন';
       /* নাম্বার কীবোর্ড ফোকাস */
       setTimeout(function(){
-        var inp=document.getElementById('slHiddenInput');
-        if(inp){ inp.value=''; inp.focus(); }
-      },150);
+        _slFocusPinInput();
+      },300);
     } else if (type === 'pattern') {
       document.getElementById('slPatternSection').style.display='';
       if(sub) sub.textContent='প্যাটার্ন আঁকুন';
@@ -3659,6 +3931,17 @@
     overlay.classList.add('active');
     document.body.style.overflow='hidden';
   }
+  /* ── পিন input ফোকাস helper — মোবাইলে কীবোর্ড তুলতে ── */
+  function _slFocusPinInput() {
+    var inp = document.getElementById('slHiddenInput');
+    if (!inp) return;
+    inp.removeAttribute('readonly');
+    inp.value = '';
+    inp.focus();
+    /* iOS Safari workaround */
+    inp.click();
+  }
+
   function _slHide() {
     document.getElementById('screenLockOverlay').classList.remove('active');
     document.body.style.overflow='';
@@ -3686,7 +3969,7 @@
           document.getElementById('screenLockError').textContent='ভুল পিন, আবার চেষ্টা করুন';
           for(var i=0;i<4;i++){var d=document.getElementById('pd'+i);
             if(d){d.classList.add('shake');setTimeout(function(el){el.classList.remove('shake');}.bind(null,d),350);}}
-          _slPin=''; setTimeout(function(){ _slUpdateDots(); inp.value=''; inp.focus(); },350);
+          _slPin=''; setTimeout(function(){ _slUpdateDots(); _slFocusPinInput(); },350);
         }
       },180);
     }
@@ -3835,7 +4118,6 @@
   function _notifRender() {
     const list  = _notifLoad();
     const el    = document.getElementById('notifList');
-    const empty = document.getElementById('notifEmpty');
     if (!el) return;
     if (!list.length) {
       el.innerHTML = '<div class="notif-empty">কোনো নোটিফিকেশন নেই</div>';
@@ -3970,10 +4252,6 @@
           _fbListener = null; /* error হলে reset করো যাতে পরে আবার চেষ্টা হয় */
         });
     } catch(e) { console.error('Listener start error:', e); }
-  }
-
-  function _fbStopListener() {
-    if (_fbListener) { _fbListener(); _fbListener = null; }
   }
 
   /* ── স্ট্যাটাস UI হেল্পার ── */
@@ -4263,19 +4541,41 @@
   }
   function _epMobField(n) {
     return '<div class="ep-field"><div class="ep-mob-wrap">'
-      + '<span class="ep-mob-prefix">+880</span>'
+      + '<span class="ep-mob-prefix">+88</span>'
       + '<input class="ep-inp" id="ep' + n + 'Mob" type="tel" inputmode="numeric" placeholder=" ">'
       + '</div></div>';
   }
   function _epSaveBtn(fn) {
-    return '<button class="ep-save-btn" onclick="' + fn + '">'
+    return '<div class="ep-foot">'
+      + '<button class="ep-back-btn" onclick="_epBackClose()" title="বাতিল">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+      + '</button>'
+      + '<button class="ep-save-btn" onclick="' + fn + '">'
       + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
-      + 'সেভ করুন</button>';
+      + 'সেভ করুন</button>'
+      + '</div>';
   }
-  function _epCommonRows(n) {
-    return '<div class="ep-row">'
-      + _epField('ep'+n+'Memo','ম্যামো নং','text','','  inputmode="numeric"')
-      + _epField('ep'+n+'Goj','গজ','number','amt')
+  function _epBackClose() {
+    /* overlay ফর্ম খোলা থাকলে সেটা বন্ধ করি */
+    var ov = document.getElementById('epOverlay');
+    if (ov && ov.classList.contains('open')) { epClose(); return; }
+    /* inline ফর্ম বন্ধ করি */
+    var inf = document.getElementById('fvInlineForm');
+    var bd  = document.getElementById('fvFormBackdrop');
+    var eb  = document.getElementById('fvEntryBtn');
+    if (inf) inf.classList.remove('visible');
+    if (bd)  bd.classList.remove('visible');
+    if (eb)  eb.classList.remove('active');
+  }
+  /* ── তারিখ ফিল্ড helper ── */
+  function _epDateField(id) {
+    return '<div class="ep-field">'
+      + '<fieldset><legend>তারিখ</legend>'
+      + '<input class="ep-inp" id="' + id + '" type="text" placeholder=" "'
+      + ' onfocus="this.type=\'date\';this.placeholder=\'\'"'
+      + ' onblur="if(!this.value){this.type=\'text\';this.placeholder=\' \';_epFV(this)}else{_epFV(this)}"'
+      + ' onchange="_epFV(this)"></fieldset>'
+      + '<label class="ep-label">তারিখ</label>'
       + '</div>';
   }
 
@@ -4283,19 +4583,22 @@
   function _epCustomerForm(n) {
     return '<div class="ep-form-box">'
       + '<div class="ep-row">'
-      + _epField('ep'+n+'Memo','ম্যামো নং','text','',' inputmode="numeric"')
-      + _epField('ep'+n+'Goj','গজ','number','amt')
-      + '</div>'
-      + '<div class="ep-row">'
-      + _epField('ep'+n+'Bill','বকেয়া','number','amt')
-      + _epField('ep'+n+'Joma','জমা','number','amt')
-      + '</div>'
-      + '<div class="ep-row">'
       + _epField('ep'+n+'Name','নাম','text','')
       + _epField('ep'+n+'Addr','ঠিকানা','text','')
       + '</div>'
       + '<div class="ep-row">'
       + _epMobField(n)
+      + _epDateField('ep'+n+'Date')
+      + '</div>'
+      + '<div class="ep-row">'
+      + _epField('ep'+n+'Memo','ম্যামো নং','text','',' inputmode="numeric"')
+      + _epField('ep'+n+'Bill','বকেয়া','number','amt')
+      + '</div>'
+      + '<div class="ep-row">'
+      + _epField('ep'+n+'Joma','জমা','number','amt')
+      + _epField('ep'+n+'Goj','গজ','number','amt')
+      + '</div>'
+      + '<div class="ep-row">'
       + _epField('ep'+n+'Note','মন্তব্য','text','')
       + '</div>'
       + _epSaveBtn('epSaveCustomer('+n+')')
@@ -4306,14 +4609,6 @@
   function _epSupplierForm(n) {
     return '<div class="ep-form-box">'
       + '<div class="ep-row">'
-      + _epField('ep'+n+'Memo','ম্যামো নং','text','',' inputmode="numeric"')
-      + _epField('ep'+n+'Goj','গজ','number','amt')
-      + '</div>'
-      + '<div class="ep-row">'
-      + _epField('ep'+n+'Baki','পাওনা','number','amt')
-      + _epField('ep'+n+'Joma','জমা','number','amt')
-      + '</div>'
-      + '<div class="ep-row">'
       + '<div class="ep-field"><fieldset><legend>নাম *</legend>'
       + '<input class="ep-inp" id="ep'+n+'Name" type="text" placeholder=" " oninput="_epFV(this)"></fieldset>'
       + '<label class="ep-label">নাম <span style="color:#e07070">*</span></label></div>'
@@ -4321,6 +4616,17 @@
       + '</div>'
       + '<div class="ep-row">'
       + _epMobField(n)
+      + _epDateField('ep'+n+'Date')
+      + '</div>'
+      + '<div class="ep-row">'
+      + _epField('ep'+n+'Memo','ম্যামো নং','text','',' inputmode="numeric"')
+      + _epField('ep'+n+'Baki','পাওনা','number','amt')
+      + '</div>'
+      + '<div class="ep-row">'
+      + _epField('ep'+n+'Joma','জমা','number','amt')
+      + _epField('ep'+n+'Goj','গজ','number','amt')
+      + '</div>'
+      + '<div class="ep-row">'
       + _epField('ep'+n+'Note','মন্তব্য','text','')
       + '</div>'
       + _epSaveBtn('epSaveSupplier('+n+')')
@@ -4336,19 +4642,24 @@
     const goj   = document.getElementById(`ep${n}Goj`)?.value.trim()  || '';
     const addr  = document.getElementById(`ep${n}Addr`)?.value.trim() || '';
     const mobRaw = document.getElementById(`ep${n}Mob`)?.value.trim()  || '';
-    const mob    = mobRaw ? '+880' + mobRaw : '';
+    const mob    = mobRaw ? '+88' + mobRaw : '';
     const note  = document.getElementById(`ep${n}Note`)?.value.trim() || '';
+    const dateEl = document.getElementById(`ep${n}Date`);
+    const date  = (dateEl && dateEl.value) ? dateEl.value : new Date().toISOString();
     if (!name && !bill) { document.getElementById(`ep${n}Name`).focus(); return; }
     const baki = Math.max(0, bill - joma);
     const key  = EP_META[n].key;
     const list = _lsGet(key);
-    list.push({ id: Date.now(), name, memo, goj, bill, joma, baki, addr, mob, note, date: new Date().toISOString() });
+    list.push({ id: Date.now(), name, memo, goj, bill, joma, baki, addr, mob, note, date });
     _lsSet(key, list);
     /* ফর্ম রিসেট */
     [`ep${n}Name`,`ep${n}Memo`,`ep${n}Goj`,`ep${n}Bill`,`ep${n}Joma`,`ep${n}Addr`,`ep${n}Mob`,`ep${n}Note`]
       .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    if (dateEl) { dateEl.value = ''; dateEl.type = 'text'; dateEl.placeholder = ' '; }
     epRender(n);
     _fbAutoSync();
+    /* ইনলাইন ফর্ম বন্ধ করি ও লিস্ট উপরে স্ক্রল */
+    (function(){ var inf=document.getElementById('fvInlineForm'); var bkd=document.getElementById('fvFormBackdrop'); var eb=document.getElementById('fvEntryBtn'); if(inf) inf.classList.remove('visible'); if(bkd) bkd.classList.remove('visible'); if(eb) eb.classList.remove('active'); var bd=document.getElementById('fvBody'); if(bd) bd.scrollTop=0; })();
   }
 
   /* ── সরবরাহকারী সেভ ── */
@@ -4359,19 +4670,24 @@
     const memo    = document.getElementById(`ep${n}Memo`)?.value.trim() || '';
     const goj     = document.getElementById(`ep${n}Goj`)?.value.trim()  || '';
     const mobRaw  = document.getElementById(`ep${n}Mob`)?.value.trim()  || '';
-    const mob     = mobRaw ? '+880' + mobRaw : '';
+    const mob     = mobRaw ? '+88' + mobRaw : '';
     const addr    = document.getElementById(`ep${n}Addr`)?.value.trim() || '';
     const note    = document.getElementById(`ep${n}Note`)?.value.trim() || '';
+    const dateEl  = document.getElementById(`ep${n}Date`);
+    const date    = (dateEl && dateEl.value) ? dateEl.value : new Date().toISOString();
     if (!name) { document.getElementById(`ep${n}Name`).focus(); return; }
     const netBaki = Math.max(0, baki - joma);
     const key  = EP_META[n].key;
     const list = _lsGet(key);
-    list.push({ id: Date.now(), name, memo, goj, baki: netBaki, joma, mob, addr, note, date: new Date().toISOString() });
+    list.push({ id: Date.now(), name, memo, goj, baki: netBaki, joma, initPawna: baki, mob, addr, note, date });
     _lsSet(key, list);
     [`ep${n}Name`,`ep${n}Memo`,`ep${n}Goj`,`ep${n}Baki`,`ep${n}Joma`,`ep${n}Mob`,`ep${n}Addr`,`ep${n}Note`]
       .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    if (dateEl) { dateEl.value = ''; dateEl.type = 'text'; dateEl.placeholder = ' '; }
     epRender(n);
     _fbAutoSync();
+    /* ইনলাইন ফর্ম বন্ধ করি ও লিস্ট উপরে স্ক্রল */
+    (function(){ var inf=document.getElementById('fvInlineForm'); var bkd=document.getElementById('fvFormBackdrop'); var eb=document.getElementById('fvEntryBtn'); if(inf) inf.classList.remove('visible'); if(bkd) bkd.classList.remove('visible'); if(eb) eb.classList.remove('active'); var bd=document.getElementById('fvBody'); if(bd) bd.scrollTop=0; })();
   }
 
   /* ── রেন্ডার (হোম কার্ড কাউন্ট আপডেট) ── */
@@ -4406,6 +4722,14 @@
     document.getElementById('fvHdrTitle').textContent = m.title;
     document.getElementById('fvSearch').value = '';
 
+    /* ইনলাইন ফর্ম বন্ধ করি প্রথমে */
+    var inf = document.getElementById('fvInlineForm');
+    var bd  = document.getElementById('fvFormBackdrop');
+    var eb  = document.getElementById('fvEntryBtn');
+    if (inf) inf.classList.remove('visible');
+    if (bd)  bd.classList.remove('visible');
+    if (eb)  eb.classList.remove('active');
+
     /* কন্টেন্ট রেন্ডার, তারপর GPU transform দিয়ে স্লাইড-ইন */
     fvFilterRender();
     document.getElementById('fvScreen').classList.add('open');
@@ -4416,9 +4740,44 @@
     _dragDeactivateReady();
     if (_dr.active) _dragEnd();
     _fvLpClear();
+    /* ইনলাইন ফর্ম বন্ধ করি */
+    var inf = document.getElementById('fvInlineForm');
+    var bd  = document.getElementById('fvFormBackdrop');
+    var eb  = document.getElementById('fvEntryBtn');
+    if (inf) inf.classList.remove('visible');
+    if (bd)  bd.classList.remove('visible');
+    if (eb)  eb.classList.remove('active');
     document.getElementById('fvScreen').classList.remove('open');
     document.body.style.overflow = '';
     _fvCard = 0;
+  }
+
+  /* ── ইনলাইন ফর্ম টগল ── */
+  function fvToggleEntryForm() {
+    var inf   = document.getElementById('fvInlineForm');
+    var bd    = document.getElementById('fvFormBackdrop');
+    var inner = document.getElementById('fvInlineFormInner');
+    var eb    = document.getElementById('fvEntryBtn');
+    if (!inf || !_fvCard) return;
+
+    var isOpen = inf.classList.contains('visible');
+    if (isOpen) {
+      inf.classList.remove('visible');
+      if (bd) bd.classList.remove('visible');
+      eb.classList.remove('active');
+    } else {
+      /* ফর্ম বিল্ড করি */
+      var m = EP_META[_fvCard];
+      inner.innerHTML = m.type === 'customer'
+        ? _epCustomerForm(_fvCard) : _epSupplierForm(_fvCard);
+      inner.querySelectorAll('.ep-inp').forEach(function(el){ _epFV(el); });
+      inf.classList.add('visible');
+      if (bd) bd.classList.add('visible');
+      eb.classList.add('active');
+      /* প্রথম ইনপুটে ফোকাস */
+      var firstInp = inner.querySelector('.ep-inp');
+      if (firstInp) setTimeout(function(){ firstInp.focus(); }, 120);
+    }
   }
 
   /* debounced সার্চ — প্রতি keystroke-এ full re-render এড়ায় */
@@ -4495,13 +4854,13 @@
         /* সব লেনদেন কালানুক্রমিক তালিকা বানাই */
         var txns = [];
         /* রুট এন্ট্রি (history আসার আগের পুরনো ডেটা) */
-        if (item.bill)  txns.push({ date: item.date, memo: item.memo, type: 'bill',  amt: item.bill,  note: item.note, goj: item.goj || '' });
+        if (item.bill !== undefined && item.bill !== null)  txns.push({ date: item.date, memo: item.memo, type: 'bill',  amt: item.bill,  note: item.note, goj: item.goj || '' });
         if (item.joma && !(item.history||[]).length)
                         txns.push({ date: item.date, memo: item.memo, type: 'joma',  amt: item.joma,  note: '' });
         /* history লগ */
         (item.history || []).forEach(function(h) {
           if (h.type === 'bokeyoa') {
-            if (h.bill)  txns.push({ date: h.date, memo: h.memo, type: 'bill',  amt: h.bill,  note: h.note || '', goj: h.goj || '' });
+            if (h.bill !== undefined && h.bill !== null)  txns.push({ date: h.date, memo: h.memo, type: 'bill',  amt: h.bill,  note: h.note || '', goj: h.goj || '' });
           } else if (h.type === 'joma') {
             txns.push({ date: h.date, memo: h.memo, type: 'joma', amt: h.joma, note: h.note || '' });
           }
@@ -4542,14 +4901,14 @@
           + '</tr></thead><tbody>' + rows + '</tbody></table>';
       } else {
         var txns = [];
-        var initPawna = (item.baki||0) + (item.joma||0);
+        var initPawna = (item.initPawna !== undefined) ? item.initPawna : (item.baki||0) + (item.joma||0);
         if (initPawna > 0 && !(item.history||[]).length)
           txns.push({ date: item.date, memo: item.memo, type: 'pawna', amt: initPawna, note: item.note || '', goj: item.goj || '' });
         if (item.joma && !(item.history||[]).length)
           txns.push({ date: item.date, memo: item.memo, type: 'joma', amt: item.joma, note: '' });
         (item.history || []).forEach(function(h) {
           if (h.type === 'bokeyoa') {
-            if (h.baki) txns.push({ date: h.date, memo: h.memo, type: 'pawna', amt: h.baki, note: h.note || '', goj: h.goj || '' });
+            if (h.baki !== undefined && h.baki !== null) txns.push({ date: h.date, memo: h.memo, type: 'pawna', amt: h.baki, note: h.note || '', goj: h.goj || '' });
           } else if (h.type === 'joma') {
             txns.push({ date: h.date, memo: h.memo, type: 'joma', amt: h.joma, note: h.note || '' });
           }
@@ -4606,7 +4965,7 @@
         +     '</div>'
         +     '<div class="fv-card-del-row">'
         +       '<span class="fv-card-baki-lbl">'
-        +         ((item.baki > 0) ? fmtAmt(item.baki) : ((item.bill || item.khoroch || (item.history||[]).length) ? 'পরিশোধ ✔' : ''))
+        +         ((item.baki > 0) ? fmtAmt(item.baki) : ((item.bill > 0 || item.khoroch > 0 || item.initPawna > 0 || (item.history||[]).some(function(h){ return h.type==='bokeyoa' && (h.bill||h.baki||0) > 0; })) ? 'পরিশোধ ✔' : ''))
         +       '</span>'
         +     '</div>'
         +   '</div>'
@@ -4624,14 +4983,12 @@
   var _dr = {
     active:      false,   /* ড্র্যাগ চলছে? */
     cardEl:      null,    /* যে কার্ড ড্র্যাগ হচ্ছে */
-    clone:       null,    /* fixed position clone */
     placeholder: null,    /* খালি জায়গা */
     startY:      0,
     offsetY:     0,       /* touch point → card top offset */
     cardH:       0,
     catN:        0,
     lpTimer:     null,    /* long-press টাইমার */
-    lpItemId:    0,
     moved:       false,
     scrollTimer: null,
   };
@@ -4810,10 +5167,7 @@
 
   /* ── render এর পরে existing drag-ready state ধরে রাখি ── */
   function _dragInitCards(n) {
-    /* সার্চ চালু থাকলে drag handle দেখাবো না */
-    var q = (document.getElementById('fvSearch')?.value || '').trim();
-    if (q) return;
-    /* আগে drag-ready ছিল কিনা — restore করবো না, user নতুন করে করুক */
+    /* সার্চ চলু থাকলে drag handle দেখাবো না — no-op */
   }
 
   /* ══════════════════════════════════════════
@@ -4932,7 +5286,7 @@
                       txns.push({ date: item.date, memo: item.memo, type: 'joma',  amt: item.joma,  note: '', _src:'init_joma' });
       (item.history || []).forEach(function(h, hi) {
         if (h.type === 'bokeyoa') {
-          if (h.bill)  txns.push({ date: h.date, memo: h.memo, type: 'bill',  amt: h.bill,  note: h.note || '', goj: h.goj || '', _src:'hist', _histIdx: hi });
+          if (h.bill !== undefined && h.bill !== null)  txns.push({ date: h.date, memo: h.memo, type: 'bill',  amt: h.bill,  note: h.note || '', goj: h.goj || '', _src:'hist', _histIdx: hi });
         } else if (h.type === 'joma') {
           txns.push({ date: h.date, memo: h.memo, type: 'joma', amt: h.joma, note: h.note || '', goj: '', _src:'hist', _histIdx: hi });
         }
@@ -4978,7 +5332,7 @@
       /* সরবরাহকারী */
       var txns = [];
       /* প্রাথমিক এন্ট্রি — history আসার আগের পুরনো ডেটা */
-      var initPawna = (item.baki||0) + (item.joma||0);
+      var initPawna = (item.initPawna !== undefined) ? item.initPawna : (item.baki||0) + (item.joma||0);
       if (initPawna > 0 && !(item.history||[]).length)
         txns.push({ date: item.date, memo: item.memo, type: 'pawna', amt: initPawna, note: item.note || '', goj: item.goj || '', _src:'init' });
       if (item.joma && !(item.history||[]).length)
@@ -5198,7 +5552,6 @@
     }
   }
 
-  /* ── ডিটেইল বাকি ক্যালক ── */
   /* ── ডিটেইল গ্রাহক বকেয়া সেভ ── */
   function fvDetailSaveBokeyoa() {
     var n = _detailN, parentId = _detailId;
@@ -5269,10 +5622,11 @@
     if (!list[idx].history) list[idx].history = [];
     list[idx].history.push({ type:'bokeyoa', memo, date, baki: pawna, note, goj, ts: Date.now() });
     /* history থেকে সম্পূর্ণ recalculate
-       supplier init: item.baki = প্রথম পাওনা - প্রথম জমা
-       history: পরবর্তী সব entry */
-    var _tp = (list[idx].baki || 0) + (list[idx].joma || 0); /* init pawna = baki + joma */
-    var _tjs = list[idx].joma || 0;                           /* init joma */
+       initPawna = মূল পাওনা (save-এর সময় store করা), না থাকলে baki+joma দিয়ে অনুমান */
+    var _initP = (list[idx].initPawna !== undefined) ? list[idx].initPawna : (list[idx].baki || 0) + (list[idx].joma || 0);
+    var _initJ = list[idx].joma || 0;
+    var _tp  = _initP;
+    var _tjs = _initJ;
     list[idx].history.forEach(function(h) {
       if (h.type === 'bokeyoa') _tp  += (h.baki || 0);
       else if (h.type === 'joma') _tjs += (h.joma || 0);
@@ -5298,8 +5652,10 @@
     if (!list[idx].history) list[idx].history = [];
     list[idx].history.push({ type:'joma', memo, date, joma, note, ts: Date.now() });
     /* history থেকে সম্পূর্ণ recalculate */
-    var _tp2 = (list[idx].baki || 0) + (list[idx].joma || 0);
-    var _tjs2 = list[idx].joma || 0;
+    var _initP2 = (list[idx].initPawna !== undefined) ? list[idx].initPawna : (list[idx].baki || 0) + (list[idx].joma || 0);
+    var _initJ2 = list[idx].joma || 0;
+    var _tp2  = _initP2;
+    var _tjs2 = _initJ2;
     list[idx].history.forEach(function(h) {
       if (h.type === 'bokeyoa') _tp2  += (h.baki || 0);
       else if (h.type === 'joma') _tjs2 += (h.joma || 0);
@@ -5338,7 +5694,7 @@
     document.getElementById('fvEditAddr').value = item.addr || '';
     /* +880 প্রিফিক্স থাকলে বাদ দিয়ে শুধু নম্বর দেখাই */
     const storedMob = item.mob || '';
-    document.getElementById('fvEditMob').value  = storedMob.startsWith('+880') ? storedMob.slice(4) : storedMob;
+    document.getElementById('fvEditMob').value  = storedMob.startsWith('+88') ? storedMob.slice(3) : storedMob;
     /* has-val আপডেট */
     ['fvEditName','fvEditAddr'].forEach(function(id2){
       var el = document.getElementById(id2);
@@ -5362,7 +5718,7 @@
     if (!name) { document.getElementById('fvEditName').focus(); return; }
     const addr = document.getElementById('fvEditAddr').value.trim();
     const mobRaw = document.getElementById('fvEditMob').value.trim();
-    const mob  = mobRaw ? '+880' + mobRaw : '';
+    const mob  = mobRaw ? '+88' + mobRaw : '';
     const key  = EP_META[_editN].key;
     const list = _lsGet(key);
     const idx  = list.findIndex(x => x.id === _editId);
@@ -5386,7 +5742,7 @@
 
   /* ── floating label helper — সব field type এর জন্য একটাই function ── */
   function _setFV(inp, sel) {
-    var field = inp.closest(sel || '.ep-field,.ep-field,.fv-edit-field,.fv-mini-field');
+    var field = inp.closest(sel || '.ep-field,.fv-edit-field,.fv-mini-field');
     if (!field) field = inp.closest('[class*="-field"]');
     if (field) field.classList.toggle('has-val', inp.value.trim() !== '');
   }
@@ -5412,24 +5768,6 @@
     3: { label: 'রেগুলার মহাজন',       badgeCls: 'dl-badge-c3', amtField: 'baki' },
     4: { label: 'ইর-রেগুলার মহাজন',    badgeCls: 'dl-badge-c4', amtField: 'baki' }
   };
-
-  function dlOpen() {
-    _dlActiveCat = 'all';
-    /* ট্যাব রিসেট */
-    document.querySelectorAll('#dlTabs .dl-tab').forEach(function(t) {
-      t.classList.toggle('active', t.dataset.cat === 'all');
-    });
-    document.getElementById('dlSearch').value = '';
-    dlRender();
-    document.getElementById('dlScreen').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function dlClose() {
-    document.getElementById('dlScreen').classList.remove('open');
-    document.body.style.overflow = '';
-    _dlEditActive = false;
-  }
 
   function dlTabChange(btn, cat) {
     _dlActiveCat = cat;
@@ -5759,11 +6097,13 @@
         item.baki = Math.max(0, totalBill - totalJoma);
       } else {
         /* সরবরাহকারী — history থেকে সম্পূর্ণ পুনর্গণনা */
-        var totalPawna = 0, totalJomaSup = 0;
         if ((item.history||[]).length === 0) {
           /* history নেই — শুধু init entry আছে, item.baki ইতিমধ্যে সেট হয়েছে */
         } else {
-          /* history আছে — শুধু history থেকে গণনা */
+          var _initPE = (item.initPawna !== undefined) ? item.initPawna : (item.baki || 0) + (item.joma || 0);
+          var _initJE = item.joma || 0;
+          var totalPawna = _initPE;
+          var totalJomaSup = _initJE;
           (item.history || []).forEach(function(h) {
             if (h.type === 'bokeyoa') totalPawna   += (h.baki || 0);
             else if (h.type === 'joma') totalJomaSup += (h.joma || 0);
