@@ -1762,26 +1762,31 @@
 
     /* ── বকেয়া / জমা বাটন ── */
     .fv-entry-btns {
-      display: flex; gap: 8px;
-      padding: 8px 8px 4px;
+      display: flex; gap: 10px;
+      padding: 10px 8px 6px;
     }
     .fv-bokeyoa-btn, .fv-joma-btn {
       font-family: 'Noto Sans Bengali', sans-serif;
-      flex: 1; padding: 7px 10px; border-radius: 8px;
-      font-size: 12px; font-weight: 700; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 5px;
-      transition: background .15s;
+      flex: 1; padding: 13px 10px; border-radius: 12px;
+      font-size: 14px; font-weight: 800; cursor: pointer; border: none;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      transition: filter .15s, transform .12s;
     }
+    .fv-bokeyoa-btn:active, .fv-joma-btn:active { transform: scale(.97); }
     .fv-bokeyoa-btn {
-      border: 1.5px solid rgba(155,44,44,.35);
-      background: rgba(155,44,44,.08); color: #9b2c2c;
+      background: linear-gradient(160deg, #e53030 0%, #c02020 60%, #a01818 100%);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(192,32,32,.45);
     }
-    .fv-bokeyoa-btn:hover, .fv-bokeyoa-btn.active { background: rgba(155,44,44,.18); }
+    .fv-bokeyoa-btn:hover  { filter: brightness(1.10); }
+    .fv-bokeyoa-btn.active { background: linear-gradient(160deg, #961414 0%, #7a0f0f 100%); }
     .fv-joma-btn {
-      border: 1.5px solid rgba(26,92,53,.35);
-      background: rgba(26,92,53,.08); color: #1a5c35;
+      background: linear-gradient(160deg, #22b55a 0%, #18924a 60%, #117a3c 100%);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(24,146,74,.45);
     }
-    .fv-joma-btn:hover, .fv-joma-btn.active { background: rgba(26,92,53,.18); }
+    .fv-joma-btn:hover  { filter: brightness(1.10); }
+    .fv-joma-btn.active { background: linear-gradient(160deg, #0f6030 0%, #0a4a24 100%); }
 
     /* ── মিনি এন্ট্রি ফর্ম ── */
     .fv-mini-form {
@@ -5280,24 +5285,30 @@
     var innerContent = '';
     var _detailRunning = 0; /* টেবিলের সব transaction শেষে প্রকৃত বাকি */
     if (isCustomer) {
+      /* txns বানাই — _histIdx = original history[] index, sort নেই */
       var txns = [];
-      if (item.bill)  txns.push({ date: item.date, memo: item.memo, type: 'bill',  amt: item.bill,  note: item.note, goj: item.goj || '', _src:'init' });
-      if (item.joma && !(item.history||[]).length)
-                      txns.push({ date: item.date, memo: item.memo, type: 'joma',  amt: item.joma,  note: '', _src:'init_joma' });
-      (item.history || []).forEach(function(h, hi) {
-        if (h.type === 'bokeyoa') {
-          if (h.bill !== undefined && h.bill !== null)  txns.push({ date: h.date, memo: h.memo, type: 'bill',  amt: h.bill,  note: h.note || '', goj: h.goj || '', _src:'hist', _histIdx: hi });
-        } else if (h.type === 'joma') {
-          txns.push({ date: h.date, memo: h.memo, type: 'joma', amt: h.joma, note: h.note || '', goj: '', _src:'hist', _histIdx: hi });
-        }
-      });
+      if (item.bill !== undefined && item.bill !== null && item.bill > 0)
+        txns.push({ date: item.date, memo: item.memo, type: 'bill', amt: item.bill, note: item.note || '', goj: item.goj || '', _src: 'init', _histIdx: '' });
+      /* init joma — সবসময় দেখাবে (history থাকুক বা না থাকুক) */
+      if (item.joma !== undefined && item.joma !== null && item.joma > 0)
+        txns.push({ date: item.date, memo: item.memo, type: 'joma', amt: item.joma, note: '', goj: '', _src: 'init_joma', _histIdx: '' });
+      /* history — _histIdx = loop index (sort এর আগে assign, পরে অপরিবর্তিত) */
+      var _hist = item.history || [];
+      for (var hi = 0; hi < _hist.length; hi++) {
+        var h = _hist[hi];
+        if (h.type === 'bokeyoa' && h.bill !== undefined && h.bill !== null)
+          txns.push({ date: h.date, memo: h.memo, type: 'bill', amt: h.bill, note: h.note || '', goj: h.goj || '', _src: 'hist', _histIdx: hi });
+        else if (h.type === 'joma')
+          txns.push({ date: h.date, memo: h.memo, type: 'joma', amt: h.joma || 0, note: h.note || '', goj: '', _src: 'hist', _histIdx: hi });
+      }
       var rows = '';
       var running = 0;
-      txns.forEach(function(t) {
-        var srcAttr = ' data-src="' + t._src + '" data-hist-idx="' + (t._histIdx !== undefined ? t._histIdx : '') + '" data-txn-type="' + t.type + '"'
+      for (var ti = 0; ti < txns.length; ti++) {
+        var t = txns[ti];
+        var srcAttr = ' data-src="' + t._src + '" data-hist-idx="' + t._histIdx + '" data-txn-type="' + t.type + '"'
           + ' data-raw-date="' + (t.date||'') + '" data-raw-memo="' + _esc(t.memo||'') + '" data-raw-note="' + _esc(t.note||'') + '" data-raw-goj="' + _esc(t.goj||'') + '" data-raw-amt="' + (t.amt||0) + '"';
         if (t.type === 'bill') {
-          running += t.amt;
+          running += (t.amt || 0);
           rows += '<tr class="tr-bill"' + srcAttr + '>'
             + '<td data-field="date">' + fmtDate(t.date) + '</td>'
             + '<td class="td-label" data-field="memo">' + (t.memo || '—') + '</td>'
@@ -5308,8 +5319,7 @@
             + '<td data-field="note">' + (t.note || '—') + '</td>'
             + '</tr>';
         } else {
-          running -= t.amt;
-          running = Math.max(0, running);
+          running = Math.max(0, running - (t.amt || 0));
           rows += '<tr class="tr-joma"' + srcAttr + '>'
             + '<td data-field="date">' + fmtDate(t.date) + '</td>'
             + '<td class="td-label" data-field="memo">' + (t.memo || '—') + '</td>'
@@ -5320,8 +5330,7 @@
             + '<td data-field="note">' + (t.note || '—') + '</td>'
             + '</tr>';
         }
-      });
-      /* running = সকল transaction শেষে প্রকৃত বাকি — এটাই ফুটারে দেখাবে */
+      }
       _detailRunning = running;
       if (!rows) rows = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:12px">কোনো লেনদেন নেই</td></tr>';
       innerContent =
@@ -5329,31 +5338,33 @@
         + '<th>তারিখ</th><th>ম্যামো</th><th>বকেয়া/প্রাপ্য</th><th>জমা</th><th>মোট বাকি</th><th>গজ</th><th>মন্তব্য</th>'
         + '</tr></thead><tbody>' + rows + '</tbody></table>';
     } else {
-      /* সরবরাহকারী */
+      /* ══ সরবরাহকারী ══ */
       var txns = [];
-      /* প্রাথমিক এন্ট্রি — history আসার আগের পুরনো ডেটা */
       var initPawna = (item.initPawna !== undefined) ? item.initPawna : (item.baki||0) + (item.joma||0);
-      if (initPawna > 0 && !(item.history||[]).length)
-        txns.push({ date: item.date, memo: item.memo, type: 'pawna', amt: initPawna, note: item.note || '', goj: item.goj || '', _src:'init' });
-      if (item.joma && !(item.history||[]).length)
-        txns.push({ date: item.date, memo: item.memo, type: 'joma', amt: item.joma, note: '', _src:'init_joma' });
-      /* history লগ */
-      (item.history || []).forEach(function(h, hi) {
-        if (h.type === 'bokeyoa') {
-          txns.push({ date: h.date, memo: h.memo, type: 'pawna', amt: h.baki||0, note: h.note || '', goj: h.goj || '', _src:'hist', _histIdx: hi });
-        } else if (h.type === 'joma') {
-          txns.push({ date: h.date, memo: h.memo, type: 'joma', amt: h.joma||0, note: h.note || '', goj: '', _src:'hist', _histIdx: hi });
-        }
-      });
-      /* তারিখ অনুযায়ী সাজাই */
-      txns.sort(function(a,b){ return (a.date||'') < (b.date||'') ? -1 : 1; });
+      if (initPawna > 0)
+        txns.push({ date: item.date, memo: item.memo, type: 'pawna', amt: initPawna, note: item.note || '', goj: item.goj || '', _src: 'init', _histIdx: '' });
+      /* init joma — সবসময় দেখাবে */
+      if (item.joma !== undefined && item.joma !== null && item.joma > 0)
+        txns.push({ date: item.date, memo: item.memo, type: 'joma', amt: item.joma, note: '', goj: '', _src: 'init_joma', _histIdx: '' });
+      /* history — _histIdx sort এর আগে assign */
+      var _hist = item.history || [];
+      for (var hi = 0; hi < _hist.length; hi++) {
+        var h = _hist[hi];
+        if (h.type === 'bokeyoa')
+          txns.push({ date: h.date, memo: h.memo, type: 'pawna', amt: h.baki || 0, note: h.note || '', goj: h.goj || '', _src: 'hist', _histIdx: hi });
+        else if (h.type === 'joma')
+          txns.push({ date: h.date, memo: h.memo, type: 'joma', amt: h.joma || 0, note: h.note || '', goj: '', _src: 'hist', _histIdx: hi });
+      }
+      /* তারিখ অনুযায়ী sort — _histIdx অপরিবর্তিত থাকে */
+      txns.sort(function(a, b) { var da = a.date||'', db = b.date||''; return da < db ? -1 : da > db ? 1 : 0; });
       var rows = '';
       var running = 0;
-      txns.forEach(function(t) {
-        var srcAttr = ' data-src="' + t._src + '" data-hist-idx="' + (t._histIdx !== undefined ? t._histIdx : '') + '" data-txn-type="' + t.type + '"'
+      for (var ti = 0; ti < txns.length; ti++) {
+        var t = txns[ti];
+        var srcAttr = ' data-src="' + t._src + '" data-hist-idx="' + t._histIdx + '" data-txn-type="' + t.type + '"'
           + ' data-raw-date="' + (t.date||'') + '" data-raw-memo="' + _esc(t.memo||'') + '" data-raw-note="' + _esc(t.note||'') + '" data-raw-goj="' + _esc(t.goj||'') + '" data-raw-amt="' + (t.amt||0) + '"';
         if (t.type === 'pawna') {
-          running += t.amt;
+          running += (t.amt || 0);
           rows += '<tr class="tr-bill"' + srcAttr + '>'
             + '<td data-field="date">' + fmtDate(t.date) + '</td>'
             + '<td class="td-label" data-field="memo">' + (t.memo || '—') + '</td>'
@@ -5362,9 +5373,8 @@
             + '<td class="td-num td-baki" data-field="readonly">' + fmtAmt(running) + '</td>'
             + '<td data-field="goj">' + (t.goj || '—') + '</td>'
             + '</tr>';
-        } else if (t.type === 'joma') {
-          running -= t.amt;
-          if (running < 0) running = 0;
+        } else {
+          running = Math.max(0, running - (t.amt || 0));
           rows += '<tr class="tr-joma"' + srcAttr + '>'
             + '<td data-field="date">' + fmtDate(t.date) + '</td>'
             + '<td class="td-label" data-field="memo">' + (t.memo || '—') + '</td>'
@@ -5374,8 +5384,7 @@
             + '<td data-field="readonly">—</td>'
             + '</tr>';
         }
-      });
-      /* running = সকল transaction শেষে প্রকৃত বাকি */
+      }
       _detailRunning = running;
       if (!rows) rows = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:12px">কোনো লেনদেন নেই</td></tr>';
       innerContent =
@@ -5395,11 +5404,11 @@
       + '</button>'
       + '</div>'
       + '<div class="fv-entry-btns">'
-      +   '<button class="fv-bokeyoa-btn" id="dbbtn-' + itemId + '" onclick="fvToggleMiniDetail(\'' + itemId + '\',\'bokeyoa\',event)">'
-      +     '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> ' + (isCustomer ? 'বকেয়া এন্ট্রি' : 'পাওনা এন্ট্রি')
-      +   '</button>'
       +   '<button class="fv-joma-btn" id="djbtn-' + itemId + '" onclick="fvToggleMiniDetail(\'' + itemId + '\',\'joma\',event)">'
-      +     '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> জমা এন্ট্রি'
+      +     '💰 জমা এন্ট্রি'
+      +   '</button>'
+      +   '<button class="fv-bokeyoa-btn" id="dbbtn-' + itemId + '" onclick="fvToggleMiniDetail(\'' + itemId + '\',\'bokeyoa\',event)">'
+      +     '📝 ' + (isCustomer ? 'বকেয়া এন্ট্রি' : 'পাওনা এন্ট্রি')
       +   '</button>'
       + '</div>'
       + '</div>';
