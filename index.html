@@ -4192,7 +4192,7 @@
   function _fbInit() {
     /* _fbReady হলেও _fbDb null হলে (ব্রাউজার ডেটা ক্লিয়ারের পর) পুনরায় init করো */
     if (_fbReady && _fbDb) return;
-    _fbReady = false; /* আগের broken state রিসেট */
+    _fbReady = false;
     try {
       if (typeof firebase === 'undefined') {
         console.warn('Firebase SDK এখনো লোড হয়নি');
@@ -4200,8 +4200,28 @@
       }
       _fbApp = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(_FB_CONFIG);
       _fbDb  = firebase.firestore(_fbApp);
+
+      /* IndexedDB persistence বন্ধ করো — ব্রাউজিং ডেটা ক্লিয়ারের পর
+         "client is offline" error এড়াতে। সব request সরাসরি server-এ যাবে। */
+      try {
+        _fbDb.settings({
+          cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,
+          experimentalForceLongPolling: true,   /* WebSocket block হলেও কাজ করে */
+          merge: true
+        });
+      } catch(_) { /* settings একবারই সেট করা যায় — পরেরবার ignore */ }
+
       _fbReady = true;
     } catch(e) { _fbReady = false; _fbDb = null; console.error('Firebase init:', e); }
+  }
+
+  /* ── network force-reconnect — ব্রাউজিং ডেটা ক্লিয়ারের পর call করো ── */
+  async function _fbReconnect() {
+    if (!_fbDb) return;
+    try {
+      await _fbDb.disableNetwork();
+      await _fbDb.enableNetwork();
+    } catch(e) { console.warn('Reconnect:', e); }
   }
 
   /* ══════════════════════════════════════
@@ -4333,9 +4353,11 @@
   }
 
   /* ── নেট ফিরলে পেন্ডিং সিঙ্ক + Listener restart ── */
-  window.addEventListener('online', () => {
+  window.addEventListener('online', async () => {
     /* ব্রাউজার ডেটা ক্লিয়ার হলে _fbReady false থাকতে পারে — পুনরায় init */
     if (!_fbReady || !_fbDb) _fbInit();
+    /* network force-reconnect — "client is offline" error fix */
+    await _fbReconnect();
     /* listener বন্ধ বা stale থাকলে আবার চালু */
     if (_fbReady) _fbStartListener();
     if (localStorage.getItem('db_pending_sync') === '1' || _pendingSync) {
@@ -4359,6 +4381,8 @@
       _dbSetStatus('error', 'Firebase লোড হয়নি। পেজ রিফ্রেশ করো।', '');
       return;
     }
+    /* ব্রাউজিং ডেটা ক্লিয়ারের পর "client is offline" এড়াতে reconnect */
+    await _fbReconnect();
     try {
       await _fbDb.collection(_FB_COL).doc(_FB_DOC).get();
       const isPending = localStorage.getItem('db_pending_sync') === '1';
@@ -4464,9 +4488,13 @@
   /* ── পেজ লোডে পেন্ডিং সিঙ্ক চেক + Listener চালু ── */
   window.addEventListener('load', () => {
     // defer script লোড নিশ্চিত করতে সামান্য দেরি
-    setTimeout(() => {
+    setTimeout(async () => {
       _fbInit();
-      _fbStartListener();
+      if (_fbReady) {
+        /* ব্রাউজিং ডেটা ক্লিয়ারের পর network reconnect নিশ্চিত করো */
+        await _fbReconnect();
+        _fbStartListener();
+      }
       if (navigator.onLine && localStorage.getItem('db_pending_sync') === '1') {
         _fbAutoSync();
       }
