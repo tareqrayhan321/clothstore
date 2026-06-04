@@ -4251,13 +4251,20 @@
           if (data.updatedAt && Math.abs(data.updatedAt - _fbLastWriteTs) < 2500) return;
 
           /* অন্য ডিভাইসের ডেটা — localStorage আপডেট করো */
+          /* আগে remote deleted IDs sync করো */
+          if (data[_FB_DEL_KEY]) _delIdsMerge(data[_FB_DEL_KEY]);
+          const snapDelIds = _delIdsGet();
+
           let changed = false;
           _FB_KEYS.forEach(k => {
             if (!data[k]) return;
-            const remote = JSON.stringify(data[k]);
+            /* deleted আইটেম বাদ দিয়ে filter করো */
+            const deletedForKey = new Set(snapDelIds[k] || []);
+            const filtered = data[k].filter(r => !deletedForKey.has(r.id));
+            const remote = JSON.stringify(filtered);
             const local  = localStorage.getItem(k) || '[]';
             if (remote !== local) {
-              _lsSet(k, data[k]);
+              _lsSet(k, filtered);
               changed = true;
             }
           });
@@ -4336,19 +4343,26 @@
 
         /* ── ২. Remote + Local merge করো (id দিয়ে deduplicate) ── */
         const payload = { secret: _FB_SECRET, updatedAt: Date.now() };
+        /* remote-এর deleted IDs আগে sync করো */
+        const remoteData = snap.exists ? snap.data() : {};
+        if (remoteData[_FB_DEL_KEY]) _delIdsMerge(remoteData[_FB_DEL_KEY]);
+        const delIds = _delIdsGet();
         _FB_KEYS.forEach(k => {
           const local  = JSON.parse(localStorage.getItem(k) || '[]');
-          const remote = (snap.exists && snap.data()[k]) ? snap.data()[k] : [];
+          const remote = remoteData[k] || [];
+          const deletedForKey = new Set(delIds[k] || []);
 
-          /* remote-এ যা আছে local-এ নেই সেগুলো যোগ করো */
+          /* remote-এ যা আছে local-এ নেই এবং deleted নয় সেগুলো যোগ করো */
           const localIds = new Set(local.map(x => x.id));
           const merged   = [...local];
-          remote.forEach(r => { if (!localIds.has(r.id)) merged.push(r); });
+          remote.forEach(r => { if (!localIds.has(r.id) && !deletedForKey.has(r.id)) merged.push(r); });
 
           /* merge ফলাফল localStorage-এ সেভ করো */
           _lsSet(k, merged);
           payload[k] = merged;
         });
+        /* deleted IDs Firebase-এ push করো যাতে অন্য ডিভাইসেও কাজ করে */
+        payload[_FB_DEL_KEY] = delIds;
 
         /* ── ৩. Merged ডেটা Firebase-এ লিখো ── */
         _fbLastWriteTs = payload.updatedAt;
@@ -4444,15 +4458,20 @@
       /* আগে remote ডেটা এনে merge করো */
       const snap = await _fbDb.collection(_FB_COL).doc(_FB_DOC).get();
       const payload = { secret: _FB_SECRET, updatedAt: Date.now() };
+      const pushRemote = snap.exists ? snap.data() : {};
+      if (pushRemote[_FB_DEL_KEY]) _delIdsMerge(pushRemote[_FB_DEL_KEY]);
+      const pushDelIds = _delIdsGet();
       _FB_KEYS.forEach(k => {
         const local  = JSON.parse(localStorage.getItem(k) || '[]');
-        const remote = (snap.exists && snap.data()[k]) ? snap.data()[k] : [];
+        const remote = pushRemote[k] || [];
+        const deletedForKey = new Set(pushDelIds[k] || []);
         const localIds = new Set(local.map(x => x.id));
         const merged   = [...local];
-        remote.forEach(r => { if (!localIds.has(r.id)) merged.push(r); });
+        remote.forEach(r => { if (!localIds.has(r.id) && !deletedForKey.has(r.id)) merged.push(r); });
         _lsSet(k, merged);
         payload[k] = merged;
       });
+      payload[_FB_DEL_KEY] = pushDelIds;
       _fbLastWriteTs = payload.updatedAt;
       await _fbDb.collection(_FB_COL).doc(_FB_DOC).set(payload);
       localStorage.setItem('db_last_sync', Date.now().toString());
@@ -4488,7 +4507,15 @@
         _dbSetBtns(false); return;
       }
       const data = snap.data();
-      _FB_KEYS.forEach(k => { if (data[k]) localStorage.setItem(k, JSON.stringify(data[k])); });
+      /* deleted IDs আগে sync করো */
+      if (data[_FB_DEL_KEY]) _delIdsMerge(data[_FB_DEL_KEY]);
+      const pullDelIds = _delIdsGet();
+      _FB_KEYS.forEach(k => {
+        if (!data[k]) return;
+        const deletedForKey = new Set(pullDelIds[k] || []);
+        const filtered = data[k].filter(r => !deletedForKey.has(r.id));
+        localStorage.setItem(k, JSON.stringify(filtered));
+      });
       localStorage.setItem('db_last_sync', Date.now().toString());
       _dbSetStatus('connected', '✓ ডাউনলোড সফল — পেজ রিলোড হবে', _dbLastSyncText());
       notifPush('info', '☁️ ক্লাউড থেকে ডেটা ডাউনলোড সফল হয়েছে।');
@@ -4555,6 +4582,43 @@
     localStorage.setItem(key, JSON.stringify(val));
   }
   function _lsClear(key) { delete _lsCache[key]; }
+
+  /* ══════════════════════════════════════
+     Deleted IDs Tombstone — ডিলিট হওয়া
+     আইটেম যাতে merge-এ ফিরে না আসে
+  ══════════════════════════════════════ */
+  var _FB_DEL_KEY = 'is_deleted_ids';
+
+  function _delIdsGet() {
+    try { return JSON.parse(localStorage.getItem(_FB_DEL_KEY) || '{}'); } catch(e) { return {}; }
+  }
+
+  function _delIdsAdd(key, id) {
+    var obj = _delIdsGet();
+    if (!obj[key]) obj[key] = [];
+    if (obj[key].indexOf(id) < 0) obj[key].push(id);
+    localStorage.setItem(_FB_DEL_KEY, JSON.stringify(obj));
+  }
+
+  function _delIdsMerge(remote) {
+    if (!remote || typeof remote !== 'object') return;
+    var local = _delIdsGet();
+    Object.keys(remote).forEach(function(k) {
+      if (!Array.isArray(remote[k])) return;
+      if (!local[k]) local[k] = [];
+      remote[k].forEach(function(id) {
+        if (local[k].indexOf(id) < 0) local[k].push(id);
+      });
+    });
+    localStorage.setItem(_FB_DEL_KEY, JSON.stringify(local));
+    Object.keys(local).forEach(function(k) {
+      if (!Array.isArray(local[k]) || !local[k].length) return;
+      var list = _lsGet(k);
+      var delSet = new Set(local[k]);
+      var filtered = list.filter(function(x) { return !delSet.has(x.id); });
+      if (filtered.length !== list.length) _lsSet(k, filtered);
+    });
+  }
 
   function toBn(n) { return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]); }
   function fmtAmt(n) { return '৳' + (n||0).toLocaleString('bn-BD'); }
@@ -5600,6 +5664,7 @@
       alert('❌ ভুল সিক্রেট কী! ডেটা মোছা হয়নি।');
       return;
     }
+    _delIdsAdd(key, itemId);   /* tombstone — merge-এ ফিরে আসবে না */
     _lsSet(key, list.filter(x => x.id !== itemId));
     _fbAutoSync();
     epRender(n);
