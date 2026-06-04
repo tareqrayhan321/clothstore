@@ -2016,6 +2016,11 @@
       border-color: rgba(200,150,30,0.70);
       box-shadow: 0 2px 8px rgba(0,0,0,.10), 0 0 0 2px rgba(200,150,30,0.35);
     }
+    /* lp-selected অবস্থায় drag handle-এ touch-action none — scroll block করো */
+    .fv-card.lp-selected .fv-drag-handle {
+      touch-action: none;
+      -webkit-user-select: none;
+    }
 
     /* ══════════════════════════════════════
        এডিট মোড বাটন ও সেল স্টাইল
@@ -4170,12 +4175,12 @@
      Firebase Firestore — অটো-সিঙ্ক সিস্টেম
   ══════════════════════════════════════ */
   const _FB_CONFIG = {
-    apiKey:            "AIzaSyC0Jtn5wqZdbsnpPWm9ohogrj0V7ChMpEM",
-    authDomain:        "dokan-aa2ff.firebaseapp.com",
-    projectId:         "dokan-aa2ff",
-    storageBucket:     "dokan-aa2ff.firebasestorage.app",
-    messagingSenderId: "586472349003",
-    appId:             "1:586472349003:web:afc7264accf4a099cd9cce"
+    apiKey:            "AIzaSyBKAihBx-YYxskEZeShnfK03a1DzxrtIqg",
+    authDomain:        "dokane-aa207.firebaseapp.com",
+    projectId:         "dokane-aa207",
+    storageBucket:     "dokane-aa207.firebasestorage.app",
+    messagingSenderId: "394082302202",
+    appId:             "1:394082302202:web:f328696a8ad2312acff143"
   };
   const _FB_KEYS    = ['is_c1_list','is_c2_list','is_c3_list','is_c4_list'];
   const _FB_DOC     = 'backup';
@@ -4190,7 +4195,6 @@
 
   /* ── Firebase ইনিশিয়ালাইজ ── */
   function _fbInit() {
-    /* _fbReady হলেও _fbDb null হলে (ব্রাউজার ডেটা ক্লিয়ারের পর) পুনরায় init করো */
     if (_fbReady && _fbDb) return;
     _fbReady = false;
     try {
@@ -4201,27 +4205,29 @@
       _fbApp = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(_FB_CONFIG);
       _fbDb  = firebase.firestore(_fbApp);
 
-      /* IndexedDB persistence বন্ধ করো — ব্রাউজিং ডেটা ক্লিয়ারের পর
-         "client is offline" error এড়াতে। সব request সরাসরি server-এ যাবে। */
+      /* ব্রাউজিং ডেটা ক্লিয়ারের পর "client is offline" এড়াতে:
+         - persistence disable করো (IndexedDB cache ব্যবহার হবে না)
+         - LongPolling চালু করো (WebSocket ছাড়াও কাজ করে)
+         settings() শুধু প্রথমবার কাজ করে, পরে error আসলে ignore করি */
       try {
-        _fbDb.settings({
-          cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,
-          experimentalForceLongPolling: true,   /* WebSocket block হলেও কাজ করে */
-          merge: true
-        });
-      } catch(_) { /* settings একবারই সেট করা যায় — পরেরবার ignore */ }
+        _fbDb.settings({ experimentalForceLongPolling: true, merge: true });
+      } catch(_) {}
+
+      /* persistence বন্ধ — ব্রাউজার ডেটা ক্লিয়ার হলেও reconnect হবে */
+      _fbDb.disableNetwork().then(() => _fbDb.enableNetwork()).catch(() => {});
 
       _fbReady = true;
     } catch(e) { _fbReady = false; _fbDb = null; console.error('Firebase init:', e); }
   }
 
-  /* ── network force-reconnect — ব্রাউজিং ডেটা ক্লিয়ারের পর call করো ── */
+  /* ── network force-reconnect — ব্রাউজিং ডেটা ক্লিয়ারের পর ── */
   async function _fbReconnect() {
     if (!_fbDb) return;
     try {
       await _fbDb.disableNetwork();
       await _fbDb.enableNetwork();
-    } catch(e) { console.warn('Reconnect:', e); }
+      console.log('Firebase network reconnected');
+    } catch(e) { console.warn('Reconnect warn:', e); }
   }
 
   /* ══════════════════════════════════════
@@ -4311,38 +4317,59 @@
            d.toLocaleTimeString('bn-BD', {hour:'2-digit', minute:'2-digit'});
   }
 
-  /* ── অটো-সিঙ্ক কোর (debounced) ── */
+  /* ── অটো-সিঙ্ক কোর (debounced) — merge strategy ── */
   function _fbAutoSync() {
     clearTimeout(_autoSyncTimer);
     if (!navigator.onLine) {
-      /* অফলাইন — পেন্ডিং মার্ক করো */
       _pendingSync = true;
       localStorage.setItem('db_pending_sync', '1');
       _dbSetStatus('error', '⚡ অফলাইন — নেট চালু হলে সিঙ্ক হবে', _dbLastSyncText());
       return;
     }
-    /* ২ সেকেন্ড debounce — একাধিক দ্রুত সেভে একবার সিঙ্ক */
+    /* ২ সেকেন্ড debounce */
     _autoSyncTimer = setTimeout(async () => {
       _fbInit();
       if (!_fbReady) return;
       try {
+        /* ── ১. Firebase থেকে বর্তমান ডেটা আনো ── */
+        const snap = await _fbDb.collection(_FB_COL).doc(_FB_DOC).get();
+
+        /* ── ২. Remote + Local merge করো (id দিয়ে deduplicate) ── */
         const payload = { secret: _FB_SECRET, updatedAt: Date.now() };
-        _FB_KEYS.forEach(k => { payload[k] = JSON.parse(localStorage.getItem(k) || '[]'); });
-        _fbLastWriteTs = payload.updatedAt; /* echo এড়াতে timestamp মনে রাখো */
+        _FB_KEYS.forEach(k => {
+          const local  = JSON.parse(localStorage.getItem(k) || '[]');
+          const remote = (snap.exists && snap.data()[k]) ? snap.data()[k] : [];
+
+          /* remote-এ যা আছে local-এ নেই সেগুলো যোগ করো */
+          const localIds = new Set(local.map(x => x.id));
+          const merged   = [...local];
+          remote.forEach(r => { if (!localIds.has(r.id)) merged.push(r); });
+
+          /* merge ফলাফল localStorage-এ সেভ করো */
+          _lsSet(k, merged);
+          payload[k] = merged;
+        });
+
+        /* ── ৩. Merged ডেটা Firebase-এ লিখো ── */
+        _fbLastWriteTs = payload.updatedAt;
         await _fbDb.collection(_FB_COL).doc(_FB_DOC).set(payload);
+
         const now = Date.now().toString();
         localStorage.setItem('db_last_sync', now);
         localStorage.removeItem('db_pending_sync');
         _pendingSync = false;
         _dbSetStatus('connected', '✓ অটো-সিঙ্ক হয়েছে', _dbLastSyncText());
         notifPush('success', '✓ ডেটা অটো-সিঙ্ক হয়েছে — ' + _dbLastSyncText().replace('সর্বশেষ সিঙ্ক: ',''));
-        /* মেনু সাব-লেবেল আপডেট */
         const sub = document.getElementById('dbMenuSub');
         if (sub) sub.textContent = '✓ ' + _dbLastSyncText().replace('সর্বশেষ সিঙ্ক: ','');
+
+        /* UI রিফ্রেশ */
+        [1,2,3,4].forEach(n => { if (typeof epRender === 'function') epRender(n); });
+        if (typeof fvFilterRender === 'function' && _fvCard) fvFilterRender();
+
       } catch(e) {
         _pendingSync = true;
         localStorage.setItem('db_pending_sync', '1');
-        /* Firestore connection ভেঙে গেলে পরের retry-তে পুনরায় init হবে */
         if (e.code === 'unavailable' || e.code === 'failed-precondition' || !_fbDb) {
           _fbReady = false; _fbDb = null; _fbListener = null;
         }
@@ -4403,7 +4430,7 @@
     document.getElementById('dbOverlay').classList.remove('open');
   }
 
-  /* ── ম্যানুয়াল আপলোড ── */
+  /* ── ম্যানুয়াল আপলোড (merge করে) ── */
   async function dbPush() {
     if (!_fbReady || !_fbDb) { _fbInit(); }
     if (!_fbReady || !_fbDb) {
@@ -4414,16 +4441,28 @@
     _dbSetBtns(true);
     _dbSetStatus('syncing', 'আপলোড হচ্ছে…', '');
     try {
+      /* আগে remote ডেটা এনে merge করো */
+      const snap = await _fbDb.collection(_FB_COL).doc(_FB_DOC).get();
       const payload = { secret: _FB_SECRET, updatedAt: Date.now() };
-      _FB_KEYS.forEach(k => { payload[k] = JSON.parse(localStorage.getItem(k) || '[]'); });
+      _FB_KEYS.forEach(k => {
+        const local  = JSON.parse(localStorage.getItem(k) || '[]');
+        const remote = (snap.exists && snap.data()[k]) ? snap.data()[k] : [];
+        const localIds = new Set(local.map(x => x.id));
+        const merged   = [...local];
+        remote.forEach(r => { if (!localIds.has(r.id)) merged.push(r); });
+        _lsSet(k, merged);
+        payload[k] = merged;
+      });
       _fbLastWriteTs = payload.updatedAt;
       await _fbDb.collection(_FB_COL).doc(_FB_DOC).set(payload);
       localStorage.setItem('db_last_sync', Date.now().toString());
       localStorage.removeItem('db_pending_sync');
       _pendingSync = false;
-      _dbSetStatus('connected', '✓ আপলোড সফল — সব ডেটা সেভ হয়েছে', _dbLastSyncText());
-      notifPush('success', '☁️ ম্যানুয়াল আপলোড সফল — সব ডেটা Firebase-এ সেভ হয়েছে।');
-      document.getElementById('dbInfoText').textContent = 'সমস্ত ডেটা সফলভাবে ক্লাউডে আপলোড হয়েছে।';
+      _dbSetStatus('connected', '✓ আপলোড সফল — সব ডেটা merge হয়েছে', _dbLastSyncText());
+      notifPush('success', '☁️ আপলোড সফল — সব ডিভাইসের ডেটা merge হয়েছে।');
+      document.getElementById('dbInfoText').textContent = 'সমস্ত ডেটা merge করে ক্লাউডে সেভ হয়েছে।';
+      [1,2,3,4].forEach(n => { if (typeof epRender === 'function') epRender(n); });
+      if (typeof fvFilterRender === 'function' && _fvCard) fvFilterRender();
     } catch(e) {
       _dbSetStatus('error', 'আপলোড ব্যর্থ: ' + e.message, '');
       notifPush('error', '⚠️ আপলোড ব্যর্থ: ' + e.message);
@@ -5068,7 +5107,9 @@
   function _dragHandleDown(e, itemId) {
     e.stopPropagation();
     e.preventDefault();
-    var card = e.currentTarget.closest('.fv-card');
+    /* inline onpointerdown থেকে call হয় — e.target দিয়ে card খুঁজি */
+    var handle = e.target.closest('.fv-drag-handle') || e.target;
+    var card   = handle.closest('.fv-card');
     if (!card) return;
     /* শুধু lp-selected কার্ডেই drag কাজ করবে */
     if (!card.classList.contains('lp-selected')) return;
@@ -5239,10 +5280,14 @@
     /* আগেরটা clear করো */
     if (_fvLpSelCard) _fvLpSelCard.classList.remove('lp-selected');
 
+    /* cardEl হতে পারে fv-card-top — আসল fv-card parent নিই
+       যাতে CSS .fv-card.lp-selected সিলেক্টর কাজ করে */
+    var fvCard = (cardEl && cardEl.closest('.fv-card')) || cardEl;
+
     _fvLpSelN    = n;
     _fvLpSelId   = itemId;
-    _fvLpSelCard = cardEl;
-    cardEl.classList.add('lp-selected');
+    _fvLpSelCard = fvCard;
+    fvCard.classList.add('lp-selected');
     if (navigator.vibrate) navigator.vibrate(40);
 
     /* drag catN সেট করো — handle থেকে drag শুরুর জন্য */
