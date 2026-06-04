@@ -1296,7 +1296,7 @@
     }
     .fv-card:hover { border-color: #a89880; }
 
-    /* ── ড্র্যাগ হ্যান্ডেল ── */
+    /* ── ড্র্যাগ হ্যান্ডেল — lp-selected অবস্থায় দেখা যাবে ── */
     .fv-drag-handle {
       position: absolute;
       top: 0; left: 0;
@@ -1309,7 +1309,7 @@
       touch-action: none;
     }
     .fv-drag-handle svg { color: #a89060; pointer-events: none; }
-    .fv-card.drag-ready .fv-drag-handle { opacity: 1; }
+    .fv-card.lp-selected .fv-drag-handle { opacity: 1; }
 
     /* ── ড্র্যাগিং অবস্থা ── */
     .fv-card.dragging {
@@ -1350,7 +1350,7 @@
       cursor: pointer;
       transition: padding-left .2s;
     }
-    .fv-card.drag-ready .fv-card-top { padding-left: 32px; }
+    .fv-card.lp-selected .fv-card-top { padding-left: 32px; }
     .fv-card-top:hover { background: rgba(0,0,0,.04); }
     .fv-card-left { min-width: 0; padding-right: 105px; }
     .fv-name { font-size: 14px; font-weight: 800; color: #2c1e0a; }
@@ -4190,12 +4190,18 @@
 
   /* ── Firebase ইনিশিয়ালাইজ ── */
   function _fbInit() {
-    if (_fbReady) return;
+    /* _fbReady হলেও _fbDb null হলে (ব্রাউজার ডেটা ক্লিয়ারের পর) পুনরায় init করো */
+    if (_fbReady && _fbDb) return;
+    _fbReady = false; /* আগের broken state রিসেট */
     try {
-      _fbApp   = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(_FB_CONFIG);
-      _fbDb    = firebase.firestore(_fbApp);
+      if (typeof firebase === 'undefined') {
+        console.warn('Firebase SDK এখনো লোড হয়নি');
+        return;
+      }
+      _fbApp = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(_FB_CONFIG);
+      _fbDb  = firebase.firestore(_fbApp);
       _fbReady = true;
-    } catch(e) { _fbReady = false; console.error('Firebase init:', e); }
+    } catch(e) { _fbReady = false; _fbDb = null; console.error('Firebase init:', e); }
   }
 
   /* ══════════════════════════════════════
@@ -4204,7 +4210,9 @@
      অটো আপডেট হবে, পেজ রিলোড ছাড়াই।
   ══════════════════════════════════════ */
   function _fbStartListener() {
-    if (!_fbReady || _fbListener) return; /* ইতিমধ্যে চলছে */
+    if (!_fbReady || !_fbDb) return; /* Firebase প্রস্তুত নয় */
+    /* আগের listener থাকলে বন্ধ করো (ব্রাউজার ডেটা ক্লিয়ারের পর stale হতে পারে) */
+    if (_fbListener) { try { _fbListener(); } catch(_){} _fbListener = null; }
     try {
       _fbListener = _fbDb
         .collection(_FB_COL)
@@ -4314,6 +4322,10 @@
       } catch(e) {
         _pendingSync = true;
         localStorage.setItem('db_pending_sync', '1');
+        /* Firestore connection ভেঙে গেলে পরের retry-তে পুনরায় init হবে */
+        if (e.code === 'unavailable' || e.code === 'failed-precondition' || !_fbDb) {
+          _fbReady = false; _fbDb = null; _fbListener = null;
+        }
         _dbSetStatus('error', 'সিঙ্ক ব্যর্থ — পরে চেষ্টা হবে', '');
         notifPush('error', '⚠️ অটো-সিঙ্ক ব্যর্থ হয়েছে। নেট সংযোগ চেক করো।');
       }
@@ -4322,7 +4334,10 @@
 
   /* ── নেট ফিরলে পেন্ডিং সিঙ্ক + Listener restart ── */
   window.addEventListener('online', () => {
-    _fbStartListener(); /* listener বন্ধ থাকলে আবার চালু */
+    /* ব্রাউজার ডেটা ক্লিয়ার হলে _fbReady false থাকতে পারে — পুনরায় init */
+    if (!_fbReady || !_fbDb) _fbInit();
+    /* listener বন্ধ বা stale থাকলে আবার চালু */
+    if (_fbReady) _fbStartListener();
     if (localStorage.getItem('db_pending_sync') === '1' || _pendingSync) {
       _dbSetStatus('syncing', '🌐 নেট পেয়েছে — সিঙ্ক হচ্ছে…', '');
       notifPush('info', '🌐 নেট সংযোগ ফিরে এসেছে। পেন্ডিং ডেটা সিঙ্ক হচ্ছে…');
@@ -4340,7 +4355,7 @@
     document.getElementById('dbOverlay').classList.add('open');
     _dbSetBtns(true);
     _dbSetStatus('syncing', 'সংযোগ যাচাই করা হচ্ছে…', '');
-    if (!_fbReady) {
+    if (!_fbReady || !_fbDb) {
       _dbSetStatus('error', 'Firebase লোড হয়নি। পেজ রিফ্রেশ করো।', '');
       return;
     }
@@ -4366,7 +4381,12 @@
 
   /* ── ম্যানুয়াল আপলোড ── */
   async function dbPush() {
-    if (!_fbReady) { _fbInit(); }
+    if (!_fbReady || !_fbDb) { _fbInit(); }
+    if (!_fbReady || !_fbDb) {
+      _dbSetStatus('error', 'Firebase লোড হয়নি। পেজ রিফ্রেশ করো।', '');
+      notifPush('error', '⚠️ Firebase প্রস্তুত নয়। পেজ রিফ্রেশ করো।');
+      return;
+    }
     _dbSetBtns(true);
     _dbSetStatus('syncing', 'আপলোড হচ্ছে…', '');
     try {
@@ -4389,7 +4409,12 @@
 
   /* ── ডাউনলোড ── */
   async function dbPull() {
-    if (!_fbReady) { _fbInit(); }
+    if (!_fbReady || !_fbDb) { _fbInit(); }
+    if (!_fbReady || !_fbDb) {
+      _dbSetStatus('error', 'Firebase লোড হয়নি। পেজ রিফ্রেশ করো।', '');
+      notifPush('error', '⚠️ Firebase প্রস্তুত নয়। পেজ রিফ্রেশ করো।');
+      return;
+    }
     if (!confirm('ক্লাউড থেকে ডেটা ডাউনলোড করলে ফোনের বর্তমান ডেটা পরিবর্তন হবে। নিশ্চিত?')) return;
     _dbSetBtns(true);
     _dbSetStatus('syncing', 'ডাউনলোড হচ্ছে…', '');
@@ -4438,11 +4463,14 @@
 
   /* ── পেজ লোডে পেন্ডিং সিঙ্ক চেক + Listener চালু ── */
   window.addEventListener('load', () => {
-    _fbInit();
-    _fbStartListener(); /* Real-time sync চালু */
-    if (navigator.onLine && localStorage.getItem('db_pending_sync') === '1') {
-      _fbAutoSync();
-    }
+    // defer script লোড নিশ্চিত করতে সামান্য দেরি
+    setTimeout(() => {
+      _fbInit();
+      _fbStartListener();
+      if (navigator.onLine && localStorage.getItem('db_pending_sync') === '1') {
+        _fbAutoSync();
+      }
+    }, 800);
   });
 
   /* ════════════════════════════════════
@@ -4742,7 +4770,6 @@
   }
 
   function fvClose() {
-    _dragDeactivateReady();
     if (_dr.active) _dragEnd();
     _fvLpClear();
     /* ইনলাইন ফর্ম বন্ধ করি */
@@ -4796,8 +4823,8 @@
     const key  = meta.key;
     const q    = (document.getElementById('fvSearch').value || '').trim().toLowerCase();
 
-    /* সার্চ চলছে — drag-ready বন্ধ করো */
-    if (q) _dragDeactivateReady();
+    /* সার্চ চলছে — lp selection বন্ধ করো */
+    if (q) _fvLpClear();
 
     const all  = _lsGet(key);
     const list = q ? all.filter(x =>
@@ -4993,7 +5020,6 @@
     offsetY:     0,       /* touch point → card top offset */
     cardH:       0,
     catN:        0,
-    lpTimer:     null,    /* long-press টাইমার */
     moved:       false,
     scrollTimer: null,
   };
@@ -5009,52 +5035,16 @@
     localStorage.setItem('is_order_' + key, JSON.stringify(ids));
   }
 
-  /* ── লং প্রেসে drag-ready ক্লাস সব কার্ডে ── */
-  function _dragActivateReady(itemId) {
-    var body = document.getElementById('fvBody');
-    if (!body) return;
-    body.querySelectorAll('.fv-card').forEach(function(c) {
-      c.classList.add('drag-ready');
-      c.classList.add('lp-pulse');
-      setTimeout(function() { c.classList.remove('lp-pulse'); }, 500);
-    });
-    if (navigator.vibrate) navigator.vibrate(40);
-  }
 
-  /* ── drag-ready বন্ধ করো ── */
-  function _dragDeactivateReady() {
-    var body = document.getElementById('fvBody');
-    if (!body) return;
-    body.querySelectorAll('.fv-card').forEach(function(c) {
-      c.classList.remove('drag-ready');
-    });
-  }
-
-  /* ── handle pointerdown — শুধু হ্যান্ডেলে ── */
+  /* ── handle pointerdown — lp-selected কার্ডের বাম হ্যান্ডেলে ── */
   function _dragHandleDown(e, itemId) {
     e.stopPropagation();
     e.preventDefault();
     var card = e.currentTarget.closest('.fv-card');
     if (!card) return;
-
-    /* drag-ready না থাকলে: long-press দিয়ে চালু করো */
-    if (!card.classList.contains('drag-ready')) {
-      _dr.lpTimer = setTimeout(function() {
-        _dragActivateReady(itemId);
-        _dragStart(card, e.clientY, itemId);
-      }, 450);
-      /* যদি আঙুল উঠে যায় তাহলে cancel */
-      function cancelLP() {
-        clearTimeout(_dr.lpTimer);
-        card.removeEventListener('pointerup', cancelLP);
-        card.removeEventListener('pointermove', cancelLP);
-      }
-      card.addEventListener('pointerup',   cancelLP, { once: true });
-      card.addEventListener('pointermove', cancelLP, { once: true });
-      return;
-    }
-
-    /* drag-ready আছে — সরাসরি drag শুরু */
+    /* শুধু lp-selected কার্ডেই drag কাজ করবে */
+    if (!card.classList.contains('lp-selected')) return;
+    _dr.catN = _fvCard;
     _dragStart(card, e.clientY, itemId);
   }
 
@@ -5156,24 +5146,25 @@
 
     /* order সেভ */
     _dragSaveOrder();
+    _fvLpClear(); /* drag শেষে selection ও action bar বন্ধ */
     notifPush('success', 'ফোল্ডারের ক্রম সেভ হয়েছে।');
   }
 
-  /* ── fvBody click outside → drag-ready বন্ধ ── */
+  /* ── fvBody click outside → lp-selected বন্ধ ── */
   document.addEventListener('pointerdown', function(e) {
     if (_dr.active) return;
     var body = document.getElementById('fvBody');
     if (!body) return;
-    /* drag handle নয় এমন জায়গায় ক্লিক করলে drag-ready off */
-    if (!e.target.closest('.fv-drag-handle') && body.querySelector('.fv-card.drag-ready')) {
-      _dragDeactivateReady();
+    /* drag handle বা action bar নয় এমন জায়গায় ক্লিক করলে selection off */
+    if (!e.target.closest('.fv-drag-handle') &&
+        !e.target.closest('.fv-lp-action-bar') &&
+        body.querySelector('.fv-card.lp-selected')) {
+      _fvLpClear();
     }
   }, true);
 
-  /* ── render এর পরে existing drag-ready state ধরে রাখি ── */
-  function _dragInitCards(n) {
-    /* সার্চ চলু থাকলে drag handle দেখাবো না — no-op */
-  }
+  /* ── render এর পরে no-op (drag এখন lp-selected থেকে চালু হয়) ── */
+  function _dragInitCards(n) { /* intentional no-op */ }
 
   /* ══════════════════════════════════════════
      কার্ড লং প্রেস → হেডার অ্যাকশন বার
@@ -5184,8 +5175,8 @@
   var _fvLpSelCard = null;
 
   function _fvCardLpDown(e, cardEl, n, itemId) {
-    /* drag handle এ চাপলে লং প্রেস না */
-    if (e.target.closest('.fv-drag-handle')) return;
+    /* drag চলছে থাকলে LP trigger করবে না */
+    if (_dr.active) return;
     var startX = e.clientX, startY = e.clientY;
 
     _fvLpTimer = setTimeout(function() {
@@ -5225,6 +5216,9 @@
     _fvLpSelCard = cardEl;
     cardEl.classList.add('lp-selected');
     if (navigator.vibrate) navigator.vibrate(40);
+
+    /* drag catN সেট করো — handle থেকে drag শুরুর জন্য */
+    _dr.catN = n;
 
     /* নাম দেখাই */
     var key  = EP_META[n].key;
