@@ -2068,6 +2068,29 @@
       box-shadow: 0 0 0 2px rgba(184,144,42,.18);
       background: #fff;
     }
+    /* এডিট মোডে row ডিলিট বাটন */
+    .row-del-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      border: 1.5px solid rgba(200,60,60,.45);
+      background: rgba(200,60,60,.10);
+      color: #e05050;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+      padding: 0;
+    }
+    .row-del-btn:hover {
+      background: rgba(200,60,60,.22);
+      border-color: rgba(200,60,60,.7);
+      color: #ff6060;
+    }
+    .fv-excel.edit-mode tbody td[data-field="del-btn"] {
+      text-align: center;
+      vertical-align: middle;
+      padding: 4px 6px;
+      white-space: nowrap;
+    }
     /* এডিট মোডে সেভ বাটন */
     .tbl-edit-save-btn {
       font-family: 'Noto Sans Bengali', sans-serif;
@@ -5503,6 +5526,7 @@
             + '<td data-field="readonly">—</td>'
             + '<td class="td-num td-baki" data-field="readonly">' + fmtAmt(running) + '</td>'
             + '<td data-field="goj">' + (t.goj || '—') + '</td>'
+            + '<td data-field="note">' + (t.note || '—') + '</td>'
             + '</tr>';
         } else {
           running = Math.max(0, running - (t.amt || 0));
@@ -5513,14 +5537,15 @@
             + '<td class="td-num td-joma" data-field="amt">' + fmtAmt(t.amt) + '</td>'
             + '<td class="td-num td-baki" data-field="readonly">' + fmtAmt(running) + '</td>'
             + '<td data-field="readonly">—</td>'
+            + '<td data-field="note">' + (t.note || '—') + '</td>'
             + '</tr>';
         }
       }
       _detailRunning = running;
-      if (!rows) rows = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:12px">কোনো লেনদেন নেই</td></tr>';
+      if (!rows) rows = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:12px">কোনো লেনদেন নেই</td></tr>';
       innerContent =
         '<table class="fv-excel"><thead><tr>'
-        + '<th>তারিখ</th><th>ম্যামো</th><th>পাওনা/প্রদেয়</th><th>জমা</th><th>মোট বাকি</th><th>গজ</th>'
+        + '<th>তারিখ</th><th>ম্যামো</th><th>পাওনা/প্রদেয়</th><th>জমা</th><th>মোট বাকি</th><th>গজ</th><th>মন্তব্য</th>'
         + '</tr></thead><tbody>' + rows + '</tbody></table>';
     }
 
@@ -6101,6 +6126,61 @@
   }
 
   /* ══════════════════════════════════════════
+     DETAIL TABLE — একটি row ডিলিট করা
+  ══════════════════════════════════════════ */
+  function _fvDetailDeleteRow(tr, src, histIdx, n, itemId) {
+    if (!confirm('এই লাইনটি মুছে ফেলবেন?')) return;
+
+    var key  = EP_META[n].key;
+    var list = _lsGet(key);
+    var idx  = list.findIndex(function(x){ return x.id === itemId; });
+    if (idx < 0) return;
+    var item = list[idx];
+    var isCustomer = EP_META[n].type === 'customer';
+
+    if (src === 'init') {
+      /* প্রথম বকেয়া/পাওনা এন্ট্রি মুছি */
+      if (isCustomer) { item.bill = 0; item.memo = ''; item.note = ''; item.goj = ''; }
+      else            { item.baki = 0; item.memo = ''; item.note = ''; item.goj = ''; item.initPawna = 0; }
+    } else if (src === 'init_joma') {
+      /* প্রথম জমা এন্ট্রি মুছি */
+      item.joma = 0;
+    } else if (src === 'hist' && histIdx !== '') {
+      var hi = parseInt(histIdx);
+      if (item.history && item.history[hi] !== undefined) {
+        item.history.splice(hi, 1);
+      }
+    }
+
+    /* baki পুনর্গণনা */
+    if (isCustomer) {
+      var _tb = item.bill || 0;
+      var _tj = item.joma || 0;
+      (item.history || []).forEach(function(h) {
+        if (h.type === 'bokeyoa') _tb += (h.bill || 0);
+        else if (h.type === 'joma') _tj += (h.joma || 0);
+      });
+      item.baki = Math.max(0, _tb - _tj);
+    } else {
+      var _initP = (item.initPawna !== undefined) ? item.initPawna : (item.baki || 0) + (item.joma || 0);
+      var _tp = _initP, _tjs = item.joma || 0;
+      (item.history || []).forEach(function(h) {
+        if (h.type === 'bokeyoa') _tp  += (h.baki || 0);
+        else if (h.type === 'joma') _tjs += (h.joma || 0);
+      });
+      item.baki = Math.max(0, _tp - _tjs);
+    }
+
+    _lsSet(key, list);
+    epRender(n);
+    _fbAutoSync();
+    /* এডিট মোড রিসেট করে ডিটেইল রিফ্রেশ */
+    _detailEditActive = false;
+    fvOpenDetail(n, itemId);
+    notifPush('success', 'লাইনটি মুছে ফেলা হয়েছে।');
+  }
+
+  /* ══════════════════════════════════════════
      DETAIL SCREEN — ইনলাইন এডিট মোড
   ══════════════════════════════════════════ */
   var _detailEditActive = false;
@@ -6162,6 +6242,24 @@
           td.textContent = '';
           td.appendChild(inp);
         });
+
+        /* মন্তব্য কলামের পরে ডিলিট বাটন সেল যোগ */
+        var delTd = document.createElement('td');
+        delTd.setAttribute('data-field', 'del-btn');
+        var src     = tr.getAttribute('data-src');
+        var histIdx = tr.getAttribute('data-hist-idx');
+        var delBtn  = document.createElement('button');
+        delBtn.className = 'row-del-btn';
+        delBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
+        delBtn.title = 'এই লাইন মুছুন';
+        (function(r, s, hi, n2, iId) {
+          delBtn.onclick = function(e) {
+            e.stopPropagation();
+            _fvDetailDeleteRow(r, s, hi, n2, iId);
+          };
+        })(tr, src, histIdx, n, itemId);
+        delTd.appendChild(delBtn);
+        tr.appendChild(delTd);
       });
 
     } else {
@@ -6179,6 +6277,10 @@
       var isCustomer = EP_META[n].type === 'customer';
 
       table.querySelectorAll('tbody tr').forEach(function(tr) {
+        /* ডিলিট বাটন সেল সরাই */
+        var delTd = tr.querySelector('td[data-field="del-btn"]');
+        if (delTd) tr.removeChild(delTd);
+
         var src     = tr.getAttribute('data-src');
         var histIdx = tr.getAttribute('data-hist-idx');
         var txnType = tr.getAttribute('data-txn-type');
