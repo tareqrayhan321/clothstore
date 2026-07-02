@@ -4,9 +4,10 @@
   "description": "ইমরান ক্লথ স্টোরের হিসাব ব্যবস্থাপনা অ্যাপ",
   "start_url": "./index.html",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "background_color": "#1e1008",
-  "theme_color": "#c8961e",
+  "display_override": ["standalone", "fullscreen"],
+  "orientation": "portrait",
+  "background_color": "#faf9f5",
+  "theme_color": "#00363a",
   "lang": "bn",
   "scope": "./",
   "icons": [
