@@ -3125,6 +3125,73 @@
     .ab-close:hover { opacity:1; }
 
 </style>
+  <style>
+    /* ══════════════════════════════════════════════════════════
+       গ্লোবাল বাটন কালার — হেডারের গাঢ় সবুজ থিমের সাথে মিলিয়ে
+       (ডিলিট/ডেঞ্জার/বাতিল/ক্লোজ/ব্যাক বাটন এবং .btab-btn.active বাদে)
+       ══════════════════════════════════════════════════════════ */
+    
+    /* সব বাটনের লেখা সাদা — শুধুমাত্র সলিড/রঙিন ব্যাকগ্রাউন্ড বাটনে,
+       আইকন/ট্রান্সপারেন্ট/ইউটিলিটি বাটন (যেমন তারিখ, ব্যাক, ক্লোজ, নটিফিকেশন) বাদে */
+    button:not(.notif-btn):not(.notif-clear-btn):not(.menu-btn):not(.cal-date-btn):not(.menu-close-btn):not(.ep-back-btn):not(.fv-back-btn):not(.fv-phone-btn):not(.fv-wa-btn):not(.fv-edit-btn):not(.fab-del-btn):not(.fv-edit-cancel-btn):not(.fv-detail-del-btn):not(.fv-foot-del-btn):not(.fv-lp-edit-btn):not(.fv-lp-del-btn):not(.fv-lp-cancel-btn):not(.tbl-edit-mode-btn):not(.row-del-btn):not(.btab-btn):not(.dl-tab) {
+      color: #fff !important;
+      -webkit-text-fill-color: #fff !important;
+    }
+    .db-btn.danger {
+      color: #e07070 !important;
+      -webkit-text-fill-color: #e07070 !important;
+    }
+    
+    /* গাঢ় সবুজ বাটন */
+    .fv-entry-btn,
+    .ep-save-btn,
+    .fv-edit-save-btn,
+    .fv-mini-save-btn,
+    .fv-inline-form-inner .ep-save-btn,
+    .db-btn:not(.danger),
+    .fab-add-more-btn,
+    #pk-body .btn-primary,
+    #pk-body .btn-save,
+    #pk-body .btn-go-calc,
+    body #pk-body .btn-primary,
+    body #pk-body .btn-save,
+    body #pk-body .btn-go-calc,
+    #fabricAddBtn,
+    #fabricFormWrap button[onclick="fabricSave()"],
+    #aggOvDelModeBtn,
+    #plDelModeBtn {
+      background: linear-gradient(135deg, #0d5c5f 0%, #0a4548 55%, #072e30 100%) !important;
+      background-color: #0a4548 !important;
+      color: #fff !important;
+      -webkit-text-fill-color: #fff !important;
+      border-color: #0a4548 !important;
+    }
+    
+    /* ড্যাশবোর্ড/হোম ট্যাব — অরিজিনাল থিম রিস্টোর করো (কোনো ব্যাকগ্রাউন্ড কালার নয়) */
+    .btab-btn:not(.active) {
+      color: rgba(180,140,50,0.55) !important;
+      -webkit-text-fill-color: rgba(180,140,50,0.55) !important;
+    }
+    .btab-btn.active {
+      color: #e8b840 !important;
+      -webkit-text-fill-color: #e8b840 !important;
+    }
+    
+    .tbl-edit-mode-btn.active {
+      background: rgba(10,69,72,.14) !important;
+      border-color: rgba(10,69,72,.45) !important;
+      color: #0a4548 !important;
+      -webkit-text-fill-color: #0a4548 !important;
+    }
+    /* ডিলিট মুড চালু থাকা অবস্থায় লালই থাকবে (JS দিয়ে override করা হয়) */
+    #aggOvDelModeBtn.del-mode-active,
+    #plDelModeBtn.del-mode-active {
+      background: #c0392b !important;
+      border-color: #c0392b !important;
+      color: #fff !important;
+      -webkit-text-fill-color: #fff !important;
+    }
+  </style>
 </head>
 <body>
 
@@ -4416,7 +4483,10 @@
             if (!data[k]) return;
             /* deleted আইটেম বাদ দিয়ে filter করো */
             const deletedForKey = new Set(snapDelIds[k] || []);
-            const filtered = data[k].filter(r => !deletedForKey.has(r.id));
+            let filtered = data[k].filter(r => !deletedForKey.has(r.id));
+            if (k === 'fabricPurchaseData_v2' && typeof _fabricPurgeGroups === 'function') {
+              filtered = _fabricPurgeGroups(filtered);
+            }
             const remote = JSON.stringify(filtered);
             const local  = localStorage.getItem(k) || '[]';
             if (remote !== local) {
@@ -4427,7 +4497,7 @@
           _FB_ARR_KEYS.forEach(k => {
             if (!data[k]) return;
             const localArr  = JSON.parse(localStorage.getItem(k) || '[]');
-            const mergedArr = _mergeArrByTs(localArr, data[k]);
+            const mergedArr = _mergeArrByTs(localArr, data[k], k);
             if (JSON.stringify(mergedArr) !== JSON.stringify(localArr)) {
               localStorage.setItem(k, JSON.stringify(mergedArr));
               _lsClear(k);
@@ -4545,8 +4615,11 @@
 
           /* remote-এ যা আছে local-এ নেই এবং deleted নয় সেগুলো যোগ করো */
           const localIds = new Set(local.map(x => x.id));
-          const merged   = [...local];
+          let merged   = [...local];
           remote.forEach(r => { if (!localIds.has(r.id) && !deletedForKey.has(r.id)) merged.push(r); });
+          if (k === 'fabricPurchaseData_v2' && typeof _fabricPurgeGroups === 'function') {
+            merged = _fabricPurgeGroups(merged);
+          }
 
           /* merge ফলাফল localStorage-এ সেভ করো */
           _lsSet(k, merged);
@@ -4555,7 +4628,7 @@
         _FB_ARR_KEYS.forEach(k => {
           const local  = JSON.parse(localStorage.getItem(k) || '[]');
           const remote = remoteData[k] || [];
-          const merged = _mergeArrByTs(local, remote);
+          const merged = _mergeArrByTs(local, remote, k);
           localStorage.setItem(k, JSON.stringify(merged));
           _lsClear(k);
           payload[k] = merged;
@@ -4673,15 +4746,18 @@
         const remote = pushRemote[k] || [];
         const deletedForKey = new Set(pushDelIds[k] || []);
         const localIds = new Set(local.map(x => x.id));
-        const merged   = [...local];
+        let merged   = [...local];
         remote.forEach(r => { if (!localIds.has(r.id) && !deletedForKey.has(r.id)) merged.push(r); });
+        if (k === 'fabricPurchaseData_v2' && typeof _fabricPurgeGroups === 'function') {
+          merged = _fabricPurgeGroups(merged);
+        }
         _lsSet(k, merged);
         payload[k] = merged;
       });
       _FB_ARR_KEYS.forEach(k => {
         const local  = JSON.parse(localStorage.getItem(k) || '[]');
         const remote = pushRemote[k] || [];
-        const merged = _mergeArrByTs(local, remote);
+        const merged = _mergeArrByTs(local, remote, k);
         localStorage.setItem(k, JSON.stringify(merged));
         _lsClear(k);
         payload[k] = merged;
@@ -4736,7 +4812,10 @@
       _FB_KEYS.forEach(k => {
         if (!data[k]) return;
         const deletedForKey = new Set(pullDelIds[k] || []);
-        const filtered = data[k].filter(r => !deletedForKey.has(r.id));
+        let filtered = data[k].filter(r => !deletedForKey.has(r.id));
+        if (k === 'fabricPurchaseData_v2' && typeof _fabricPurgeGroups === 'function') {
+          filtered = _fabricPurgeGroups(filtered);
+        }
         localStorage.setItem(k, JSON.stringify(filtered));
       });
       _FB_ARR_KEYS.forEach(k => {
@@ -4815,10 +4894,17 @@
   function _lsClear(key) { delete _lsCache[key]; }
 
   /* ── chart_data-এর মতো array merge: dedup by ts, তারপর year+week collapse ── */
-  function _mergeArrByTs(local, remote) {
+  function _mergeArrByTs(local, remote, tombstoneKey) {
+    var deadIds = null;
+    if (tombstoneKey) {
+      var delMap = _delIdsGet();
+      var arr = delMap[tombstoneKey] || [];
+      deadIds = {};
+      arr.forEach(function(id) { deadIds[id] = true; });
+    }
     var byTs = {};
-    (local || []).forEach(function(e) { if (e && e.ts !== undefined) byTs[e.ts] = e; });
-    (remote || []).forEach(function(e) { if (e && e.ts !== undefined && !byTs[e.ts]) byTs[e.ts] = e; });
+    (local || []).forEach(function(e) { if (e && e.ts !== undefined && !(deadIds && deadIds[e.ts])) byTs[e.ts] = e; });
+    (remote || []).forEach(function(e) { if (e && e.ts !== undefined && !byTs[e.ts] && !(deadIds && deadIds[e.ts])) byTs[e.ts] = e; });
     var merged = Object.keys(byTs).map(function(k) { return byTs[k]; });
     /* একই year+week থাকলে সবচেয়ে নতুন ts রাখো */
     var byWeek = {};
@@ -4847,6 +4933,24 @@
     if (!obj[key]) obj[key] = [];
     if (obj[key].indexOf(id) < 0) obj[key].push(id);
     localStorage.setItem(_FB_DEL_KEY, JSON.stringify(obj));
+  }
+
+  /* fabricPurchaseData_v2 — nested purchases-এর tombstone সহ পার্জ করো,
+     যাতে ডিলিট করা purchase বা গ্রুপ merge/sync-এ ফিরে না আসে */
+  function _fabricPurgeGroups(list) {
+    if (!Array.isArray(list)) return list;
+    var delMap = _delIdsGet();
+    var deadGroups    = new Set(delMap['fabricPurchaseData_v2'] || []);
+    var deadPurchases = new Set(delMap['fabricPurchaseData_v2_purchases'] || []);
+    return list
+      .filter(function(g) { return g && !deadGroups.has(g.id); })
+      .map(function(g) {
+        if (Array.isArray(g.purchases)) {
+          g.purchases = g.purchases.filter(function(p) { return p && !deadPurchases.has(p.id); });
+        }
+        return g;
+      })
+      .filter(function(g) { return !Array.isArray(g.purchases) || g.purchases.length > 0; });
   }
 
   function _delIdsMerge(remote) {
@@ -11264,14 +11368,10 @@ function plToggleDelMode() {
   if (btn) {
     if (window._plDelMode) {
       btn.textContent = 'ডিলিট মুড বন্ধ করুন';
-      btn.style.background = '#c0392b';
-      btn.style.color = '#fff';
-      btn.style.borderColor = '#c0392b';
+      btn.classList.add('del-mode-active');
     } else {
       btn.textContent = 'ডিলিট মুড';
-      btn.style.background = '#fff';
-      btn.style.color = '#c0392b';
-      btn.style.borderColor = '#d8988a';
+      btn.classList.remove('del-mode-active');
     }
   }
   plRenderRevenueBarChart();
@@ -11285,6 +11385,7 @@ function plDeleteEntry(ts) {
     var data = JSON.parse(localStorage.getItem('chart_data') || '[]');
     var filtered = data.filter(function(e) { return e.ts !== ts; });
     localStorage.setItem('chart_data', JSON.stringify(filtered));
+    if (typeof _delIdsAdd === 'function') _delIdsAdd('chart_data', ts);
     if (typeof _fbAutoSync === 'function') _fbAutoSync();
   } catch (e) {
     alert('মুছে ফেলতে সমস্যা হয়েছে: ' + e.message);
@@ -11580,9 +11681,11 @@ if (document.readyState === 'loading') {
     var group = data.find(function(g){ return g.id === groupId; });
     if (!group) return;
     group.purchases = group.purchases.filter(function(p){ return p.id !== purchaseId; });
+    if (typeof _delIdsAdd === 'function') _delIdsAdd('fabricPurchaseData_v2_purchases', purchaseId);
     if (group.purchases.length === 0) {
       /* গ্রুপেও কিছু নেই → গ্রুপ মুছো */
       data = data.filter(function(g){ return g.id !== groupId; });
+      if (typeof _delIdsAdd === 'function') _delIdsAdd('fabricPurchaseData_v2', groupId);
     }
     fabricSaveData(data);
     fabricRender();
@@ -11881,14 +11984,10 @@ function aggOvToggleDelMode() {
   if (btn) {
     if (window._aggDelMode) {
       btn.textContent = 'ডিলিট মুড বন্ধ করুন';
-      btn.style.background = '#c0392b';
-      btn.style.color = '#fff';
-      btn.style.borderColor = '#c0392b';
+      btn.classList.add('del-mode-active');
     } else {
       btn.textContent = 'ডিলিট মুড';
-      btn.style.background = '#fff';
-      btn.style.color = '#c0392b';
-      btn.style.borderColor = '#d8988a';
+      btn.classList.remove('del-mode-active');
     }
   }
   aggOvRender();
@@ -11902,6 +12001,7 @@ function aggOvDeleteRow(ts) {
     var data = JSON.parse(localStorage.getItem('chart_data') || '[]');
     var filtered = data.filter(function(e) { return e.ts !== ts; });
     localStorage.setItem('chart_data', JSON.stringify(filtered));
+    if (typeof _delIdsAdd === 'function') _delIdsAdd('chart_data', ts);
     if (typeof _fbAutoSync === 'function') _fbAutoSync();
   } catch (e) {
     alert('মুছে ফেলতে সমস্যা হয়েছে: ' + e.message);
@@ -12036,6 +12136,20 @@ window.aggOverlayClose = aggOverlayClose;
   }
 })();
 </script>
+<style>
+  /* সর্বশেষে — নিশ্চিত করা হচ্ছে সবুজ বাটনের লেখা যেন সবসময় সাদা থাকে
+     (পরের কিছু নেভি-থিম রুল এর সাথে সংঘর্ষ এড়াতে) */
+  body #pk-body .btn-primary,
+  body #pk-body .btn-save,
+  body #pk-body .btn-go-calc,
+  #pk-body .btn-primary,
+  #pk-body .btn-save,
+  #pk-body .btn-go-calc,
+  .fab-add-more-btn {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+</style>
 </body>
 </html>
 
