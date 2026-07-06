@@ -3639,6 +3639,11 @@
     <span style="font-size:13px; font-weight:700; color:var(--text,#222);
       letter-spacing:0.02em; border-left:2px solid #cc785c; padding-left:8px;">Aggregate Report</span>
     <span id="aggOvSub" style="font-size:11px; color:var(--text3,#888); margin-left:4px;"></span>
+    <div style="flex:1;"></div>
+    <button type="button" id="aggOvDelModeBtn" onclick="aggOvToggleDelMode()" style="
+      border:1px solid #d8988a; background:#fff; color:#c0392b; border-radius:8px;
+      padding:6px 12px; font-size:11px; font-weight:700; cursor:pointer;
+      font-family:'Noto Sans Bengali',sans-serif; white-space:nowrap;">ডিলিট মুড</button>
   </div>
 
   <!-- বডি -->
@@ -3663,6 +3668,7 @@
             <th>গ্রস মুনাফা</th>
             <th>In Flow</th>
             <th>Out Flow</th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="aggOvTbody"></tbody>
@@ -3674,6 +3680,7 @@
             <td id="aggOvTGross">—</td>
             <td id="aggOvTIn">—</td>
             <td id="aggOvTOut">—</td>
+            <td></td>
           </tr>
         </tfoot>
       </table>
@@ -3816,6 +3823,11 @@
       display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#3d3d3a; padding:0;
     "><svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor"><path d="M16 7.5a.5.5 0 0 0-.5-.5H6.71l3.15-3.15a.5.5 0 0 0-.707-.707l-4 4a.5.5 0 0 0-.146.351V7.5a.5.5 0 0 0 .147.35l4 4a.5.5 0 0 0 .707-.707l-3.15-3.15h8.79a.5.5 0 0 0 .5-.5z"/></svg></button>
     <span style="font-family:var(--fab-serif,Georgia,serif); font-size:18px; font-weight:400; color:#141413; letter-spacing:-0.2px;">Profit &amp; Loss Trends</span>
+    <div style="flex:1;"></div>
+    <button type="button" id="plDelModeBtn" onclick="plToggleDelMode()" style="
+      border:1px solid #d8988a; background:#fff; color:#c0392b; border-radius:8px;
+      padding:6px 12px; font-size:11px; font-weight:700; cursor:pointer;
+      font-family:'Noto Sans Bengali',sans-serif; white-space:nowrap;">ডিলিট মুড</button>
   </div>
   <!-- বডি -->
   <div style="flex:1; overflow-y:auto; padding:16px 14px; background:#faf9f5;" id="pk-body-plTrends">
@@ -8428,6 +8440,8 @@ body #pk-body #validation-error {
 
       renderCharts();
       renderAggReportChart();
+      if (typeof ffhRenderCashflowPie === 'function') ffhRenderCashflowPie();
+      if (typeof aggOvRender === 'function') aggOvRender();
     } catch(e) {
       alert('সংরক্ষণে সমস্যা: ' + e.message);
     }
@@ -11227,12 +11241,62 @@ function plRenderRevenueBarChart() {
       html += '<text x="0" y="0" text-anchor="start" font-size="9.5" font-family="var(--fab-sans,sans-serif)" '
         + 'fill="#6c6a64" font-weight="600" transform="translate('+(x+BW/2+4)+','+(WLBL-6)+') rotate(-90)">'+wl+'</text>';
     }
+    /* ডিলিট বাটন — প্রতিটি বারের ঠিক উপরে, চার্টের একদম উপরের লেনে (×), শুধু ডিলিট মুডে দৃশ্যমান */
+    if (window._plDelMode) {
+      var delCx = x + BW/2, delCy = 9;
+      html += '<g class="pl-del-btn" style="cursor:pointer;" '
+        + 'onclick="plDeleteEntry(' + e.ts + ')" role="button" aria-label="মুছে ফেলুন">'
+        + '<circle cx="' + delCx + '" cy="' + delCy + '" r="8" fill="#fff" stroke="#d8988a" stroke-width="1"/>'
+        + '<text x="' + delCx + '" y="' + (delCy + 3.5) + '" text-anchor="middle" font-size="11" font-weight="700" fill="#c0392b" font-family="sans-serif">×</text>'
+        + '</g>';
+    }
   }
   svg.setAttribute('width',W); svg.setAttribute('height',HT); svg.setAttribute('viewBox','0 0 '+W+' '+HT);
   svg.innerHTML=html;
   var scroll=document.getElementById('plR-revBarScroll');
   if(scroll) setTimeout(function(){scroll.scrollLeft=scroll.scrollWidth;},50);
 }
+
+/* ── ডিলিট মুড টগল — P&L Trends ── */
+function plToggleDelMode() {
+  window._plDelMode = !window._plDelMode;
+  var btn = document.getElementById('plDelModeBtn');
+  if (btn) {
+    if (window._plDelMode) {
+      btn.textContent = 'ডিলিট মুড বন্ধ করুন';
+      btn.style.background = '#c0392b';
+      btn.style.color = '#fff';
+      btn.style.borderColor = '#c0392b';
+    } else {
+      btn.textContent = 'ডিলিট মুড';
+      btn.style.background = '#fff';
+      btn.style.color = '#c0392b';
+      btn.style.borderColor = '#d8988a';
+    }
+  }
+  plRenderRevenueBarChart();
+}
+window.plToggleDelMode = plToggleDelMode;
+
+/* ── P&L Trends চার্ট থেকে একটি সপ্তাহের ইন্ডিকেটর ডিলিট করা ── */
+function plDeleteEntry(ts) {
+  if (!confirm('এই সপ্তাহের ইন্ডিকেটর মুছে ফেলতে চান? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।')) return;
+  try {
+    var data = JSON.parse(localStorage.getItem('chart_data') || '[]');
+    var filtered = data.filter(function(e) { return e.ts !== ts; });
+    localStorage.setItem('chart_data', JSON.stringify(filtered));
+    if (typeof _fbAutoSync === 'function') _fbAutoSync();
+  } catch (e) {
+    alert('মুছে ফেলতে সমস্যা হয়েছে: ' + e.message);
+    return;
+  }
+  plRenderRevenueBarChart();
+  if (typeof aggOvRender === 'function') aggOvRender();
+  if (typeof ffhRenderCashflowPie === 'function') ffhRenderCashflowPie();
+  if (typeof renderAggReportChart === 'function') renderAggReportChart();
+  if (typeof renderCharts === 'function') renderCharts();
+}
+window.plDeleteEntry = plDeleteEntry;
 
 /* হোমপেজ কার্ডে সরাসরি Fund Flow ডাটা — ওভারলে না খুলেই দেখা যায় */
 function ffhRenderCashflowPie() {
@@ -11779,7 +11843,12 @@ function aggOvRender() {
       +'<td class="'+(net>=0?'agg-td-net-pos':'agg-td-net-neg')+'">'+fmt(net)+'</td>'
       +'<td class="agg-td-gross">'+fmt(gross)+'</td>'
       +'<td class="agg-td-in">'+fmt(cashIn)+'</td>'
-      +'<td class="agg-td-out">'+fmt(cashOut)+'</td></tr>';
+      +'<td class="agg-td-out">'+fmt(cashOut)+'</td>'
+      +'<td style="text-align:center;">'+(window._aggDelMode ? (
+        '<button type="button" onclick="aggOvDeleteRow('+e.ts+')" '
+        +'style="border:none;background:transparent;color:#c0392b;cursor:pointer;font-size:16px;line-height:1;padding:4px 6px;" '
+        +'title="মুছে ফেলুন" aria-label="মুছে ফেলুন">🗑️</button>'
+      ) : '')+'</td></tr>';
   });
   tbody.innerHTML=rows;
   function setFoot(id,v,cls){ var el=document.getElementById(id); if(!el)return; el.textContent=fmt(v); el.className=cls; }
@@ -11804,6 +11873,48 @@ function aggOvRender() {
   if (cardSub) cardSub.textContent = sorted.length + ' সপ্তাহের ডাটা';
 }
 window.aggOvRender = aggOvRender;
+
+/* ── ডিলিট মুড টগল — Aggregate Report ── */
+function aggOvToggleDelMode() {
+  window._aggDelMode = !window._aggDelMode;
+  var btn = document.getElementById('aggOvDelModeBtn');
+  if (btn) {
+    if (window._aggDelMode) {
+      btn.textContent = 'ডিলিট মুড বন্ধ করুন';
+      btn.style.background = '#c0392b';
+      btn.style.color = '#fff';
+      btn.style.borderColor = '#c0392b';
+    } else {
+      btn.textContent = 'ডিলিট মুড';
+      btn.style.background = '#fff';
+      btn.style.color = '#c0392b';
+      btn.style.borderColor = '#d8988a';
+    }
+  }
+  aggOvRender();
+}
+window.aggOvToggleDelMode = aggOvToggleDelMode;
+
+/* ── Aggregate Report টেবিল থেকে একটি সপ্তাহ/লাইন ডিলিট করা ── */
+function aggOvDeleteRow(ts) {
+  if (!confirm('এই সপ্তাহের ডাটা মুছে ফেলতে চান? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।')) return;
+  try {
+    var data = JSON.parse(localStorage.getItem('chart_data') || '[]');
+    var filtered = data.filter(function(e) { return e.ts !== ts; });
+    localStorage.setItem('chart_data', JSON.stringify(filtered));
+    if (typeof _fbAutoSync === 'function') _fbAutoSync();
+  } catch (e) {
+    alert('মুছে ফেলতে সমস্যা হয়েছে: ' + e.message);
+    return;
+  }
+  aggOvRender();
+  if (typeof ffhRenderCashflowPie === 'function') ffhRenderCashflowPie();
+  if (typeof renderAggReportChart === 'function') renderAggReportChart();
+  if (typeof renderCharts === 'function') renderCharts();
+  if (typeof plRenderRevenueBarChart === 'function') plRenderRevenueBarChart();
+}
+window.aggOvDeleteRow = aggOvDeleteRow;
+
 document.addEventListener('DOMContentLoaded', aggOvRender);
 document.addEventListener('DOMContentLoaded', function() {
   if (typeof _dbUpdateCardStat === 'function') _dbUpdateCardStat();
