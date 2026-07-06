@@ -270,11 +270,22 @@
     }
     .kpi-strip .home-card.kpi-mini-card .card-count#kpiNetCashStrip {
       font-family: 'Noto Sans Bengali', sans-serif !important;
-      font-size: clamp(14px, 4.5vw, 19px) !important;
+      font-size: clamp(12px, 4vw, 19px) !important;
       font-weight: 800 !important;
       line-height: 1.2 !important;
       letter-spacing: -0.01em;
       color: var(--dz-ink, #141413);
+      white-space: nowrap !important;
+      overflow: visible;
+      text-overflow: clip;
+      max-width: 100%;
+      display: block;
+    }
+    .kpi-strip .home-card.kpi-mini-card .card-count#kpiNetCashStrip.is-profit {
+      color: var(--dz-success, #5db872) !important;
+    }
+    .kpi-strip .home-card.kpi-mini-card .card-count#kpiNetCashStrip.is-loss {
+      color: #c0392b !important;
     }
     .kpi-mini-card {
       background: var(--dz-canvas, #faf9f5);
@@ -1616,6 +1627,9 @@
     body.show-home .home-kpi-strip              { display: grid; }
     body.show-home .kpi-strip:not(.home-kpi-strip) { display: none !important; }
     body.show-home #dashFundFlowCard                { display: none !important; }
+    /* Fund Flow কার্ড এবং তার নিচের সাপ্তাহিক আপডেট কার্ডের মাঝে আগের মতো সামান্য গ্যাপ */
+    #dashFundFlowCard { margin-bottom: 5px !important; }
+    #dashWeeklyUpdateWelcomeCard { margin-top: 6px !important; }
     body.show-home #dashAggCard                      { display: none !important; }
     body.show-home #dashWeeklyUpdateWelcomeCard         { display: none !important; }
 
@@ -2797,6 +2811,9 @@
     body .home-card:active::after {
       border-color: var(--dz-primary) !important;
     }
+    .kpi-strip.kpi-strip-3 .home-card.card-c5.kpi-mini-card::after {
+      display: none !important;
+    }
 
 
     /* ══════════════════════════════
@@ -3243,8 +3260,7 @@
       </div>
     </div>
   </div>
-
-  <!-- Dashboard KPI strip — header-এর ভেতরে, margin-bottom দিয়ে নিচে বের হয় -->
+  <!-- home-kpi-strip — header-এর ভেতরে, margin-bottom দিয়ে নিচে বের হয় -->
   <div class="kpi-strip kpi-strip-3 home-kpi-strip">
     <div class="home-card card-c7 kpi-mini-card" onclick="fabricOpen()">
       <div class="card-body">
@@ -3319,11 +3335,11 @@
 
     <!-- data state (হোম কার্ডে সরাসরি দৃশ্যমান) -->
     <div id="ffh-data" class="ffh-data" style="display:none;">
-      <div style="display:flex; align-items:center; gap:0; padding:8px 16px 8px;">
-        <div style="flex:0 0 auto; display:flex; align-items:center; justify-content:center;">
-          <svg id="ffh-svgPie" width="116" height="116" viewBox="0 0 130 130" style="display:block; overflow:visible;"></svg>
+      <div style="display:flex; align-items:center; gap:0; padding:4px 8px 4px 0;">
+        <div style="flex:0 0 auto; display:flex; align-items:center; justify-content:center; margin-left:-10px;">
+          <svg id="ffh-svgPie" width="128" height="128" viewBox="0 0 130 130" style="display:block; overflow:visible;"></svg>
         </div>
-        <div id="ffh-legend" style="flex:1; padding-left:12px; display:flex; flex-direction:column; gap:5px;"></div>
+        <div id="ffh-legend" style="flex:1 1 0; min-width:0; padding-left:0; margin-left:-6px; display:flex; flex-direction:column; gap:5px;"></div>
       </div>
 
       <!-- ══ সাপ্তাহিক রিপোর্ট সতর্ক বার্তা (Fund Flow-এর নিচে) ══ -->
@@ -11161,19 +11177,9 @@ function fitHomeGrid() {
 
     /* ড্যাশবোর্ড স্ক্রিনের খালি জায়গা agg-card ও fundflow-card-এ ভাগ করে বড় করা — শুধু ড্যাশবোর্ড ট্যাবে (body.show-home না থাকলে); ক্যালেন্ডার শুধু হোমে দেখা যায় তাই এখানে ধরা হচ্ছে না */
     if (aggCard && ffCard && !document.body.classList.contains('show-home')) {
-      var naturalAggH = aggCard.offsetHeight;
-      var naturalFfH  = ffCard.offsetHeight;
-      var leftover = vh - hdrH - padTop - padBottom - tabBarH;
-      if (leftover > 16) {
-        /* Fund Flow কার্ড বেশি বাড়বে, Aggregate Report সামান্য স্ট্রেচ */
-        var aggExtra = Math.min(leftover * 0.35, leftover - 20);
-        var ffExtra  = Math.max(leftover - aggExtra, 0);
-        aggCard.style.minHeight = (naturalAggH + aggExtra) + 'px';
-        ffCard.style.minHeight  = (naturalFfH + ffExtra) + 'px';
-      } else {
-        aggCard.style.minHeight = '';
-        ffCard.style.minHeight  = '';
-      }
+      /* Fund Flow কার্ডের height আর কৃত্রিমভাবে স্ট্রেচ করা হয় না — এতে কার্ডের ভেতরে খালি জায়গা/গ্যাপ তৈরি হচ্ছিল */
+      aggCard.style.minHeight = '';
+      ffCard.style.minHeight  = '';
     } else if (calCard && document.body.classList.contains('show-home')) {
       /* হোম ট্যাবে ক্যালেন্ডার তার স্বাভাবিক/আসল সাইজে থাকবে — কোনো স্ট্রেচ নয় */
       calCard.style.minHeight = '';
@@ -11444,13 +11450,12 @@ function ffhRenderCashflowPie() {
   }
 
   var cx = 65, cy = 65, R = 42, iR = 25;
-  var oR1 = 53; /* নিট মুনাফা রিং radius */
-  var oR2 = 62; /* নিট মুনাফার নগদ অংশ রিং radius */
   var grandTotal = segments.reduce(function(s, x) { return s + x.val; }, 0);
   if (grandTotal === 0) grandTotal = 1;
 
   var angle = -Math.PI / 2;
   var paths = '', gradDefs = '<defs>';
+  var cashSegStartA = null, cashSegEndA = null; /* 'নগদ আয়' সেগমেন্টের কৌণিক পরিসর — নেস্টেড লেয়ারের জন্য */
 
   segments.forEach(function(seg, idx) {
     var sweep  = (seg.val / grandTotal) * 2 * Math.PI;
@@ -11470,11 +11475,12 @@ function ffhRenderCashflowPie() {
           + ' L' + x1i.toFixed(2) + ',' + y1i.toFixed(2)
           + ' A' + iR + ',' + iR + ' 0 ' + large + ',0 ' + x2i.toFixed(2) + ',' + y2i.toFixed(2) + 'Z';
     paths += '<path d="' + d + '" fill="url(#' + gid + ')" stroke="#fff" stroke-width="1.5"/>';
+    if (seg.label === 'নগদ আয়') { cashSegStartA = startA; cashSegEndA = endA; }
     angle = endA;
   });
   gradDefs += '</defs>';
 
-  /* ── দুটি বাইরের রিং: নিট মুনাফা vs নিট মুনাফার নগদ অংশ তুলনা (এই সপ্তাহের আয়ের সাপেক্ষে) ── */
+  /* ── সবুজ 'নগদ আয়' সেগমেন্টের ভেতরেই নেস্টেড লেয়ার: নিট মুনাফার নগদ অংশ (একই কৌণিক পরিসরে, চিকন সাব-ব্যান্ড) ── */
   var netVal   = e.net   !== undefined ? e.net   : netCF;
   /* নিট মুনাফার নগদ অংশ — মোট বিক্রয়ের কতটা নগদে পাওয়া গেছে (cashIn/sales) সেই অনুপাত নিট মুনাফার উপর বসানো */
   var salesVal = e.sales || 0;
@@ -11485,46 +11491,72 @@ function ffhRenderCashflowPie() {
     var el = document.getElementById('kpiNetCashStrip');
     if (!el) return;
     var abs = Math.abs(cashOnHandVal);
-    var s = abs >= 100000 ? (abs/100000).toFixed(1)+'ল' : abs >= 1000 ? (abs/1000).toFixed(1)+'হা' : Math.round(abs).toString();
-    el.textContent = (cashOnHandVal < 0 ? '−' : '') + '৳' + s;
+    el.textContent = (cashOnHandVal < 0 ? '-' : '') + '৳' + Math.round(abs).toLocaleString('en-IN');
+    el.classList.toggle('is-loss', cashOnHandVal < 0);
+    el.classList.toggle('is-profit', cashOnHandVal >= 0);
+    var cc = el.closest('.kpi-mini-card');
+    if (cc) {
+      var cLbl = cc.querySelector('.card-title');
+      if (cLbl) cLbl.textContent = cashOnHandVal < 0 ? 'Weekly Cash Loss' : 'Weekly Cash Profit';
+      cc.style.background   = cashOnHandVal < 0 ? 'oklch(96% 0.04 20)'  : '';
+      cc.style.borderColor  = cashOnHandVal < 0 ? 'oklch(82% 0.12 20)'  : '';
+    }
   })();
-  (function drawCompareRings() {
-    if (cashIn <= 0) return;
-    var a0 = -Math.PI / 2;
-    function ringArc(ringR, ringIR, frac, color1, color2, gid) {
-      frac = Math.max(0, Math.min(frac, 1));
-      if (frac <= 0) return;
-      var sA = a0, eA = a0 + frac * 2 * Math.PI;
+  (function drawNestedCashLayer() {
+    if (cashIn <= 0 || cashSegStartA === null) return;
+    /* সবুজ সেগমেন্টের রেডিয়াল ব্যান্ড (iR → R) এর ভেতরে দুটি সাব-ব্যান্ড, একই কৌণিক পরিসরে (cashSegStartA → cashSegEndA) */
+    var bandThickness = R - iR;
+    var subOuter = iR + bandThickness * 0.55;  /* ভিতরের বর্ডার ঘেঁষে, মোটা — Cash Profit */
+    var subInner = iR;                          /* একদম ভিতরের বর্ডার বরাবর */
+    var lossOuter = R;                          /* বাইরের বর্ডার ঘেঁষে — Cash Loss */
+    var lossInner = R - bandThickness * 0.55;
+
+    var frac = cashIn > 0 ? (cashOnHandVal / cashIn) : 0;
+    frac = Math.max(0, Math.min(Math.abs(frac), 1));
+
+    /* ── Cash Profit আর্ক (নিট মুনাফা ধনাত্মক হলে) ── */
+    if (netVal >= 0 && frac > 0) {
+      var sA = cashSegStartA, eA = cashSegStartA + frac * (cashSegEndA - cashSegStartA);
       var large = (eA - sA) > Math.PI ? 1 : 0;
-      var x1o = cx + ringR * Math.cos(sA), y1o = cy + ringR * Math.sin(sA);
-      var x2o = cx + ringR * Math.cos(eA), y2o = cy + ringR * Math.sin(eA);
-      var x1i = cx + ringIR * Math.cos(eA), y1i = cy + ringIR * Math.sin(eA);
-      var x2i = cx + ringIR * Math.cos(sA), y2i = cy + ringIR * Math.sin(sA);
+      var cohColor1 = 'oklch(88% 0.09 160)';
+      var cohColor2 = 'oklch(78% 0.11 160)';
+      var gid = 'ffhCashNested';
       gradDefs += '<linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">'
-        + '<stop offset="0%" stop-color="' + color1 + '"/>'
-        + '<stop offset="100%" stop-color="' + color2 + '"/>'
+        + '<stop offset="0%" stop-color="' + cohColor1 + '"/>'
+        + '<stop offset="100%" stop-color="' + cohColor2 + '"/>'
         + '</linearGradient>';
+      var x1o = cx + subOuter * Math.cos(sA), y1o = cy + subOuter * Math.sin(sA);
+      var x2o = cx + subOuter * Math.cos(eA), y2o = cy + subOuter * Math.sin(eA);
+      var x1i = cx + subInner * Math.cos(eA), y1i = cy + subInner * Math.sin(eA);
+      var x2i = cx + subInner * Math.cos(sA), y2i = cy + subInner * Math.sin(sA);
       var d = 'M' + x1o.toFixed(2) + ',' + y1o.toFixed(2)
-            + ' A' + ringR + ',' + ringR + ' 0 ' + large + ',1 ' + x2o.toFixed(2) + ',' + y2o.toFixed(2)
-            + ' L' + x1i.toFixed(2) + ',' + y1i.toFixed(2)
-            + ' A' + ringIR + ',' + ringIR + ' 0 ' + large + ',0 ' + x2i.toFixed(2) + ',' + y2i.toFixed(2) + 'Z';
-      paths += '<path d="' + d + '" fill="url(#' + gid + ')" stroke="#fff" stroke-width="1"/>';
+        + ' A' + subOuter + ',' + subOuter + ' 0 ' + large + ',1 ' + x2o.toFixed(2) + ',' + y2o.toFixed(2)
+        + ' L' + x1i.toFixed(2) + ',' + y1i.toFixed(2)
+        + ' A' + subInner + ',' + subInner + ' 0 ' + large + ',0 ' + x2i.toFixed(2) + ',' + y2i.toFixed(2) + 'Z';
+      paths += '<path d="' + d + '" fill="url(#' + gid + ')" stroke="#fff" stroke-width="0.75"/>';
     }
-    function ringTrack(ringR, ringIR) {
-      paths += '<circle cx="'+cx+'" cy="'+cy+'" r="'+((ringR+ringIR)/2)+'" fill="none" stroke="#ffffff" stroke-width="'+(ringR-ringIR)+'"/>';
+
+    /* ── Cash Loss আর্ক (নিট মুনাফা ঋণাত্মক হলে, লাল রঙে) ── */
+    if (netVal < 0 && frac > 0) {
+      var lsA = cashSegStartA, leA = cashSegStartA + frac * (cashSegEndA - cashSegStartA);
+      var lLarge = (leA - lsA) > Math.PI ? 1 : 0;
+      var lossColor1 = 'oklch(68% 0.20 25)';
+      var lossColor2 = 'oklch(52% 0.19 25)';
+      var lgid = 'ffhCashLossNested';
+      gradDefs += '<linearGradient id="' + lgid + '" x1="0" y1="0" x2="0" y2="1">'
+        + '<stop offset="0%" stop-color="' + lossColor1 + '"/>'
+        + '<stop offset="100%" stop-color="' + lossColor2 + '"/>'
+        + '</linearGradient>';
+      var lx1o = cx + lossOuter * Math.cos(lsA), ly1o = cy + lossOuter * Math.sin(lsA);
+      var lx2o = cx + lossOuter * Math.cos(leA), ly2o = cy + lossOuter * Math.sin(leA);
+      var lx1i = cx + lossInner * Math.cos(leA), ly1i = cy + lossInner * Math.sin(leA);
+      var lx2i = cx + lossInner * Math.cos(lsA), ly2i = cy + lossInner * Math.sin(lsA);
+      var ld = 'M' + lx1o.toFixed(2) + ',' + ly1o.toFixed(2)
+        + ' A' + lossOuter + ',' + lossOuter + ' 0 ' + lLarge + ',1 ' + lx2o.toFixed(2) + ',' + ly2o.toFixed(2)
+        + ' L' + lx1i.toFixed(2) + ',' + ly1i.toFixed(2)
+        + ' A' + lossInner + ',' + lossInner + ' 0 ' + lLarge + ',0 ' + lx2i.toFixed(2) + ',' + ly2i.toFixed(2) + 'Z';
+      paths += '<path d="' + ld + '" fill="url(#' + lgid + ')" stroke="#fff" stroke-width="0.75"/>';
     }
-    var nFrac   = netVal        / cashIn;
-    var cohFrac = cashOnHandVal / cashIn;
-    var netColor1   = netVal   >= 0 ? 'oklch(70% 0.15 235)' : 'oklch(62% 0.20 15)';
-    var netColor2   = netVal   >= 0 ? 'oklch(55% 0.16 235)' : 'oklch(47% 0.18 15)';
-    var cohColor1   = 'oklch(73% 0.13 175)';
-    var cohColor2   = 'oklch(58% 0.14 175)';
-    /* ভিতরের রিং: নিট মুনাফা */
-    ringTrack(oR1, R + 3);
-    ringArc(oR1, R + 3, Math.abs(nFrac), netColor1, netColor2, 'ffhRingNet');
-    /* বাইরের রিং: নিট মুনাফার নগদ অংশ */
-    ringTrack(oR2, oR1 + 2);
-    ringArc(oR2, oR1 + 2, Math.abs(cohFrac), cohColor1, cohColor2, 'ffhRingCash');
   })();
 
 
@@ -11541,32 +11573,32 @@ function ffhRenderCashflowPie() {
     var valFmt = seg.val >= 100000 ? (seg.val/100000).toFixed(1)+'ল'
                : seg.val >= 1000    ? (seg.val/1000).toFixed(1)+'হা'
                : seg.val;
-    legHTML += '<div style="display:flex;align-items:center;gap:7px;">'
+    legHTML += '<div style="display:flex;align-items:center;gap:5px;min-width:0;">'
       + '<span style="flex-shrink:0;width:9px;height:9px;border-radius:50%;background:' + seg.color + ';"></span>'
-      + '<span style="flex:1;font-size:11px;color:#5a5868;font-weight:600;">' + seg.label + '</span>'
-      + '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:800;color:#2b2640;">' + pct + '%</span>'
-      + '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;color:#8a8896;min-width:42px;text-align:right;">' + valFmt + '৳</span>'
+      + '<span style="flex:1;min-width:0;font-size:11px;color:#5a5868;font-weight:600;overflow-wrap:break-word;">' + seg.label + '</span>'
+      + '<span style="flex-shrink:0;font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:800;color:#2b2640;">' + pct + '%</span>'
+      + '<span style="flex-shrink:0;font-family:\'IBM Plex Mono\',monospace;font-size:10px;color:#8a8896;min-width:38px;text-align:right;">' + valFmt + '৳</span>'
       + '</div>';
   });
-  var nAbs = Math.abs(netVal);
-  var nFmt = (netVal >= 0 ? '+' : '−')
-    + (nAbs >= 100000 ? (nAbs/100000).toFixed(1)+'ল' : nAbs >= 1000 ? (nAbs/1000).toFixed(1)+'হা' : nAbs) + '৳';
-  var nColor = netVal >= 0 ? 'oklch(65% 0.16 235)' : 'oklch(60% 0.20 22)';
-  legHTML += '<div style="display:flex;align-items:center;gap:7px;">'
-    + '<span style="flex-shrink:0;width:9px;height:9px;border-radius:50%;background:' + nColor + ';"></span>'
-    + '<span style="flex:1;font-size:11px;color:#5a5868;font-weight:600;">নিট মুনাফা</span>'
-    + '<span id="ffh-netCash" style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:800;color:' + nColor + ';">' + nFmt + '</span>'
-    + '</div>';
   /* নিট মুনাফার নগদ অংশ — এই সপ্তাহের বিক্রয়ের কতটা নগদে পাওয়া গেছে সেই অনুপাত নিট মুনাফার উপর */
   var cohAbs = Math.abs(cashOnHandVal);
   var cohFmt = (cashOnHandVal >= 0 ? '+' : '−')
     + (cohAbs >= 100000 ? (cohAbs/100000).toFixed(1)+'ল' : cohAbs >= 1000 ? (cohAbs/1000).toFixed(1)+'হা' : cohAbs) + '৳';
-  var cohColor = 'oklch(68% 0.14 175)';
-  legHTML += '<div style="display:flex;align-items:center;gap:7px;">'
-    + '<span style="flex-shrink:0;width:9px;height:9px;border-radius:50%;background:' + cohColor + ';"></span>'
-    + '<span style="flex:1;font-size:11px;color:#5a5868;font-weight:600;">নিট মুনাফার নগদ</span>'
-    + '<span id="ffh-cashOnHand" style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:800;color:' + cohColor + ';">' + cohFmt + '</span>'
-    + '</div>';
+  if (netVal >= 0) {
+    var cohColor = 'oklch(68% 0.14 175)';
+    legHTML += '<div style="display:flex;align-items:center;gap:5px;min-width:0;">'
+      + '<span style="flex-shrink:0;width:9px;height:9px;border-radius:50%;background:' + cohColor + ';"></span>'
+      + '<span style="flex:1;min-width:0;font-size:11px;color:#5a5868;font-weight:600;overflow-wrap:break-word;">Cash Profit</span>'
+      + '<span id="ffh-cashOnHand" style="flex-shrink:0;font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:800;color:' + cohColor + ';">' + cohFmt + '</span>'
+      + '</div>';
+  } else {
+    var lossColor = 'oklch(58% 0.20 25)';
+    legHTML += '<div style="display:flex;align-items:center;gap:5px;min-width:0;">'
+      + '<span style="flex-shrink:0;width:9px;height:9px;border-radius:50%;background:' + lossColor + ';"></span>'
+      + '<span style="flex:1;min-width:0;font-size:11px;color:#5a5868;font-weight:600;overflow-wrap:break-word;">Cash Loss</span>'
+      + '<span id="ffh-cashOnHand" style="flex-shrink:0;font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:800;color:' + lossColor + ';">' + cohFmt + '</span>'
+      + '</div>';
+  }
   legendEl.innerHTML = legHTML;
 }
 if (document.readyState === 'loading') {
@@ -11899,11 +11931,18 @@ function updateProfitStrip() {
     if (nc) {
       nc.style.background   = net < 0 ? 'oklch(96% 0.04 20)'  : '';
       nc.style.borderColor  = net < 0 ? 'oklch(82% 0.12 20)'  : '';
+      var nLbl = nc.querySelector('.profit-kpi-label');
+      if (nLbl) nLbl.textContent = net < 0 ? 'Weekly Net Loss' : 'Weekly Net Profit';
     }
   }
   if (grossEl) {
     grossEl.textContent = T(gross);
     grossEl.classList.toggle('is-loss', gross < 0);
+    var gc = grossEl.closest('.profit-kpi-gross');
+    if (gc) {
+      var gLbl = gc.querySelector('.profit-kpi-label');
+      if (gLbl) gLbl.textContent = gross < 0 ? 'Weekly Gross Loss' : 'Weekly Gross Profit';
+    }
   }
 }
 window.updateProfitStrip = updateProfitStrip;
