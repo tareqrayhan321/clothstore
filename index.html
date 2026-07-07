@@ -97,6 +97,10 @@
       border-bottom: none;
       padding-bottom: 28px;
     }
+    /* হোম ট্যাবে ক্যালেন্ডার কার্ডের নিচে বাড়তি ফাঁকা জায়গা কমানো — কার্ডগুলো উপরে তুলতে */
+    body.show-home .hdr {
+      padding-bottom: 6px;
+    }
     .hdr-brand,
     .hdr-right {
       background-color: transparent;
@@ -558,10 +562,20 @@
       transition: box-shadow .16s;
       display: flex;
       flex-direction: column;
+      /* কার্ডের সাইজ কনটেন্টের সাথে ফিট — কোনো অতিরিক্ত/ফাঁকা জায়গা থাকবে না,
+         আবার ভেতরে নতুন কিছু যোগ হলে কার্ড অপ্রয়োজনীয়ভাবে বড়ও হবে না */
+      height: auto;
+      max-height: 270px;
+      overflow: hidden;
     }
     /* কার্ড বড় হলে ভেতরের কন্টেন্ট অতিরিক্ত জায়গা সঠিকভাবে নেবে */
     #ffh-empty { flex: 1; }
-    .ffh-data { display: flex; flex-direction: column; flex: 1; }
+    .ffh-data {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;      /* flex child কে scroll করতে দিতে জরুরি */
+      overflow-y: auto;   /* কন্টেন্ট max-height-এর চেয়ে বেশি হলে ভেতরেই স্ক্রল হবে */
+    }
     .ffh-data > div:first-child { flex-shrink: 0; }
 
     /* ═══════════════════════════════
@@ -2774,12 +2788,12 @@
       gap: 8px !important;
     }
     body #homeCardsGrid .home-card {
-      min-height: 82px !important;
+      min-height: 92px !important;
     }
     body #homeCardsGrid .card-body {
-      padding: 11px 10px 9px !important;
-      gap: 5px !important;
-      min-height: 66px !important;
+      padding: 12px 10px 10px !important;
+      gap: 6px !important;
+      min-height: 74px !important;
     }
     body #homeCardsGrid .icon-medallion,
     body #homeCardsGrid .icon-medallion .icon-inner,
@@ -3150,9 +3164,29 @@
     
     /* সব বাটনের লেখা সাদা — শুধুমাত্র সলিড/রঙিন ব্যাকগ্রাউন্ড বাটনে,
        আইকন/ট্রান্সপারেন্ট/ইউটিলিটি বাটন (যেমন তারিখ, ব্যাক, ক্লোজ, নটিফিকেশন) বাদে */
-    button:not(.notif-btn):not(.notif-clear-btn):not(.menu-btn):not(.cal-date-btn):not(.menu-close-btn):not(.ep-back-btn):not(.fv-back-btn):not(.fv-phone-btn):not(.fv-wa-btn):not(.fv-edit-btn):not(.fab-del-btn):not(.fv-edit-cancel-btn):not(.fv-detail-del-btn):not(.fv-foot-del-btn):not(.fv-lp-edit-btn):not(.fv-lp-del-btn):not(.fv-lp-cancel-btn):not(.tbl-edit-mode-btn):not(.row-del-btn):not(.btab-btn):not(.dl-tab) {
+    button:not(.notif-btn):not(.notif-clear-btn):not(.menu-btn):not(.cal-date-btn):not(.menu-close-btn):not(.ep-back-btn):not(.fv-back-btn):not(.fv-phone-btn):not(.fv-wa-btn):not(.fv-edit-btn):not(.fab-del-btn):not(.fv-edit-cancel-btn):not(.fv-detail-del-btn):not(.fv-foot-del-btn):not(.fv-lp-edit-btn):not(.fv-lp-del-btn):not(.fv-lp-cancel-btn):not(.tbl-edit-mode-btn):not(.row-del-btn):not(.btab-btn):not(.dl-tab):not(.fab-cancel-btn):not(.rc-card):not(.pk-close-btn) {
       color: #fff !important;
       -webkit-text-fill-color: #fff !important;
+    }
+    /* সাপ্তাহিক হালনাগাদ/রিপোর্ট ওভারলের ক্রস (✕) বাটন — হালকা ক্রিম ব্যাকগ্রাউন্ডে গাঢ় লেখা */
+    .pk-close-btn {
+      color: #6c6a64 !important;
+      -webkit-text-fill-color: #6c6a64 !important;
+    }
+    /* Result পেইজের ৪টা ট্যাব (P&L/রাজস্ব/ক্যাশফ্লো/Stock) — নিজস্ব থিম কালার বজায় থাকবে,
+       গ্লোবাল সাদা-লেখা নিয়মে চাপা পড়বে না */
+    #pk-body #page-result .rc-card {
+      color: #6c6a64 !important;
+      -webkit-text-fill-color: #6c6a64 !important;
+    }
+    #pk-body #page-result .rc-card.rc-active {
+      color: #a9583e !important;
+      -webkit-text-fill-color: #a9583e !important;
+    }
+    /* কাপড় ক্রয় হিসাব ফর্মের 'বাতিল' বাটন — হালকা ক্রিম ব্যাকগ্রাউন্ডে গাঢ় লেখা, যাতে সাদা-অন-সাদা না হয় */
+    .fab-cancel-btn {
+      color: #141413 !important;
+      -webkit-text-fill-color: #141413 !important;
     }
     .db-btn.danger {
       color: #e07070 !important;
@@ -3337,13 +3371,13 @@
     <div id="ffh-data" class="ffh-data" style="display:none;">
       <div style="display:flex; align-items:center; gap:0; padding:4px 8px 4px 0;">
         <div style="flex:0 0 auto; display:flex; align-items:center; justify-content:center; margin-left:-10px;">
-          <svg id="ffh-svgPie" width="128" height="128" viewBox="0 0 130 130" style="display:block; overflow:visible;"></svg>
+          <svg id="ffh-svgPie" width="138" height="138" viewBox="0 0 130 130" style="display:block; overflow:visible;"></svg>
         </div>
         <div id="ffh-legend" style="flex:1 1 0; min-width:0; padding-left:0; margin-left:-6px; display:flex; flex-direction:column; gap:5px;"></div>
       </div>
 
       <!-- ══ সাপ্তাহিক রিপোর্ট সতর্ক বার্তা (Fund Flow-এর নিচে) ══ -->
-      <div id="ffh-alertLoss" class="alert-banner ab-critical" style="margin:6px 12px 3px; padding:8px 10px; border-radius:10px;">
+      <div id="ffh-alertLoss" class="alert-banner ab-critical" style="margin:4px 12px 2px; padding:6px 9px; border-radius:9px;">
         <div class="ab-icon">🔴</div>
         <div class="ab-body">
           <div><span class="ab-sev-badge">CRITICAL LOSS</span></div>
@@ -3354,7 +3388,7 @@
         <button class="ab-close" onclick="dismissAlert('ffh-alertLoss')">✕</button>
       </div>
 
-      <div id="ffh-alertLiquidity" class="alert-banner ab-warning" style="margin:3px 12px; padding:8px 10px; border-radius:10px;">
+      <div id="ffh-alertLiquidity" class="alert-banner ab-warning" style="margin:2px 12px; padding:6px 9px; border-radius:9px;">
         <div class="ab-icon">🟡</div>
         <div class="ab-body">
           <div><span class="ab-sev-badge">WARNING — Liquidity Risk</span></div>
@@ -3365,7 +3399,7 @@
         <button class="ab-close" onclick="dismissAlert('ffh-alertLiquidity')">✕</button>
       </div>
 
-      <div id="ffh-alertCashGap" class="alert-banner ab-info" style="margin:3px 12px 6px; padding:8px 10px; border-radius:10px;">
+      <div id="ffh-alertCashGap" class="alert-banner ab-info" style="margin:2px 12px 4px; padding:6px 9px; border-radius:9px;">
         <div class="ab-icon">🔵</div>
         <div class="ab-body">
           <div><span class="ab-sev-badge">INFO — Accrual Gap</span></div>
@@ -3746,9 +3780,9 @@
         <thead>
           <tr>
             <th>সপ্তাহ</th>
-            <th>আয়</th>
-            <th>নিট মুনাফা</th>
-            <th>গ্রস মুনাফা</th>
+            <th>Sales</th>
+            <th>Net Profit</th>
+            <th>Gross Profit</th>
             <th>In Flow</th>
             <th>Out Flow</th>
             <th></th>
@@ -3818,9 +3852,6 @@
         <select id="fabUnit" class="fab-input" style="width:100%; box-sizing:border-box;">
           <option value="গজ">গজ</option>
           <option value="মিটার">মিটার</option>
-          <option value="পিস">পিস</option>
-          <option value="রোল">রোল</option>
-          <option value="কেজি">কেজি</option>
         </select>
       </div>
 
@@ -3842,7 +3873,7 @@
         font-weight:600; cursor:pointer; font-family:var(--fab-sans,'Noto Sans Bengali',sans-serif); transition:background .15s;">
         ✓ সেভ করুন
       </button>
-      <button onclick="fabricToggleForm()" style="background:#faf9f5;
+      <button onclick="fabricToggleForm()" class="fab-cancel-btn" style="background:#faf9f5;
         color:#141413; border:1px solid #e6dfd8; border-radius:8px; padding:11px 16px;
         font-size:13px; cursor:pointer; font-family:var(--fab-sans,'Noto Sans Bengali',sans-serif);">বাতিল</button>
     </div>
@@ -6958,7 +6989,7 @@ body #pk-body #validation-error {
       <div>
         <div style="font-size:15px; font-weight:700; color:#141413; font-family:'Noto Serif Bengali',serif; letter-spacing:-0.2px;">সাপ্তাহিক তথ্য হালনাগাদ</div>
       </div>
-      <button onclick="paikkariClose()" style="width:32px;height:32px;border-radius:50%;border:1px solid #e6dfd8;background:#faf9f5;color:#6c6a64;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+      <button onclick="paikkariClose()" class="pk-close-btn" style="width:32px;height:32px;border-radius:50%;border:1px solid #e6dfd8;background:#faf9f5;color:#6c6a64;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
     </div>
     <div id="pk-body">
 <div class="app-shell">
@@ -8435,6 +8466,9 @@ body #pk-body #validation-error {
     var cashIn      = e.cashIn  || 0;
     var cashOut     = e.cashOut || 0;
     var netCashflow = cashIn - cashOut;
+    var opex        = e.opex    || 0;
+    var fixedExp    = e.fixed   || 0;
+    var cogs        = e.cogs    || 0;
 
     var kpiPC = $('kpiProfitCard');
     if (kpiPC) kpiPC.className = 'kpi-card ' + (netProfit >= 0 ? 'kpi-profit' : 'kpi-loss');
@@ -8469,9 +8503,47 @@ body #pk-body #validation-error {
     window._lastSales   = totalSale;
     window._lastCashIn  = cashIn;
     window._lastCashOut = cashOut;
-    window._lastOpex    = e.opex  || 0;
-    window._lastFixed   = e.fixed || 0;
-    window._lastCogs    = e.cogs  || 0;
+    window._lastOpex    = opex;
+    window._lastFixed   = fixedExp;
+    window._lastCogs    = cogs;
+
+    /* ══ চারটা ট্যাবের accordion টোটাল — সেভ করা সামারি ডাটা থেকে যতটা সম্ভব পূরণ,
+       যাতে সংরক্ষিত রিপোর্ট খুললে টেবিল একদম ফাঁকা না থাকে।
+       (লাইন-আইটেম ব্রেকডাউন যেমন নগদ/বাকি বিক্রয়ের আলাদা অঙ্ক chart_data-এ সংরক্ষিত থাকে না,
+        তাই সেসব সারি "—"-ই থাকবে; কিন্তু টোটাল/হেডার লাইনগুলো ঠিকভাবে দেখাবে) */
+
+    /* ── Tab 1: P&L বিবরণী ── */
+    set('accRevTotal',      T(totalSale));
+    set('accCogsTotal',     T(cogs));
+    set('accOpexTotal',     T(opex));
+    set('accOpexTotalRow',  T(opex));
+    set('accFixedTotal',    T(fixedExp));
+    set('accFixedTotalRow', T(fixedExp));
+    set('pCOGS',  T(cogs));
+    set('pGross', T(gross));
+    set('pNet',   T(netProfit));
+
+    /* ── Tab 2: রাজস্ব বিশ্লেষণ ── */
+    set('accRevDetailTotal',  T(totalSale));
+    set('rvTotalSale2',       T(totalSale));
+    set('accCogsDetailTotal', T(cogs));
+    set('rvCOGS',             T(cogs));
+    set('rvGross',            T(gross));
+    set('rvTotalExp',         T(opex + fixedExp));
+    set('rvNetProfit',        T(netProfit));
+
+    /* ── Tab 3: ক্যাশফ্লো ── */
+    set('cfTotalInHeader',  T(cashIn));
+    set('cfTotalIn',        T(cashIn));
+    set('cfTotalOutHeader', T(cashOut));
+    set('cfOpex',           T(opex));
+    set('cfFixed',          T(fixedExp));
+    set('cfTotalOut',       T(cashOut));
+    set('cfNet',            (netCashflow >= 0 ? '+' : '') + T(netCashflow));
+
+    /* ── Tab 4: Stock অডিট ── */
+    set('accEstCogsTotal', T(cogs));
+    set('auEstCOGS',       T(cogs));
 
     var re = $('result-empty'), rc = $('result-content'), sw = $('saveWeekWrap');
     if (re) re.style.display = 'none';
@@ -11189,7 +11261,7 @@ function fitHomeGrid() {
   }
   /* হোম স্ক্রিন (৬টা কার্ডের গ্রিড) — body padding-top = full header height (strip সহ) + gap */
   var homeBody = document.getElementById('pk-body-home');
-  if (hdr && homeBody) homeBody.style.paddingTop = (hdr.offsetHeight + 4) + 'px';
+  if (hdr && homeBody) homeBody.style.paddingTop = hdr.offsetHeight + 'px';
   /* হোম স্ক্রিনের কার্ড গ্রিড — খালি জায়গা পূরণ করতে রো-গুলো স্ট্রেচ করানো */
   var homeCardGrid = document.getElementById('homeCardsGrid');
   if (homeCardGrid && homeBody) {
@@ -11449,7 +11521,7 @@ function ffhRenderCashflowPie() {
     emptyEl.style.display = 'flex'; dataEl.style.display = 'none'; return;
   }
 
-  var cx = 65, cy = 65, R = 42, iR = 25;
+  var cx = 65, cy = 65, R = 46, iR = 28;
   var grandTotal = segments.reduce(function(s, x) { return s + x.val; }, 0);
   if (grandTotal === 0) grandTotal = 1;
 
@@ -11972,9 +12044,9 @@ function aggOvRender() {
   function fmt(v) {
     if (v===undefined||v===null) return '—';
     var abs=Math.abs(v);
-    /* বাংলা সংখ্যা পদ্ধতি: হাজার (৩ শূন্য) ও লক্ষ (৫ শূন্য) */
-    var s=abs>=100000?(abs/100000).toFixed(1)+'ল':abs>=1000?(abs/1000).toFixed(1)+'হা':Math.round(abs).toString();
-    return (v<0?'−':'')+s+'৳';
+    /* সংক্ষেপে (ল/হা) না লিখে পুরো সংখ্যা, কমা সহ */
+    var s=Math.round(abs).toLocaleString('en-IN');
+    return (v<0?'−':'')+'৳'+s;
   }
   var rows='';
   sorted.forEach(function(e) {
