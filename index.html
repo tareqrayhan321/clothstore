@@ -272,25 +272,6 @@
     .kpi-strip .home-card.kpi-mini-card .card-count {
       font-size: 10px !important;
     }
-    .kpi-strip .home-card.kpi-mini-card .card-count#kpiNetCashStrip {
-      font-family: 'Noto Sans Bengali', sans-serif !important;
-      font-size: clamp(12px, 4vw, 19px) !important;
-      font-weight: 800 !important;
-      line-height: 1.2 !important;
-      letter-spacing: -0.01em;
-      color: var(--dz-ink, #141413);
-      white-space: nowrap !important;
-      overflow: visible;
-      text-overflow: clip;
-      max-width: 100%;
-      display: block;
-    }
-    .kpi-strip .home-card.kpi-mini-card .card-count#kpiNetCashStrip.is-profit {
-      color: var(--dz-success, #5db872) !important;
-    }
-    .kpi-strip .home-card.kpi-mini-card .card-count#kpiNetCashStrip.is-loss {
-      color: #c0392b !important;
-    }
     .kpi-mini-card {
       background: var(--dz-canvas, #faf9f5);
       border: 1px solid var(--dz-hairline, #e6dfd8);
@@ -3287,11 +3268,9 @@
       <div class="profit-kpi-label">Weekly Net Profit</div>
       <div class="profit-kpi-value" id="kpiNetProfitStrip">—</div>
     </div>
-    <div class="home-card card-c5 kpi-mini-card" style="cursor:default;">
-      <div class="card-body">
-        <div class="card-title">Weekly Cash Profit</div>
-        <div class="card-count" id="kpiNetCashStrip">—</div>
-      </div>
+    <div class="profit-kpi-card profit-kpi-net" id="kpiCashCard">
+      <div class="profit-kpi-label">Weekly Cash Profit</div>
+      <div class="profit-kpi-value" id="kpiNetCashStrip">—</div>
     </div>
   </div>
   <!-- home-kpi-strip — header-এর ভেতরে, margin-bottom দিয়ে নিচে বের হয় -->
@@ -4045,9 +4024,6 @@
       <div class="fv-detail-name" id="fvDetailName"></div>
       <div class="fv-detail-meta" id="fvDetailMeta"></div>
     </div>
-    <button class="fv-back-btn" onclick="fvDetailDelete()" title="মুছে ফেলুন" style="color:#c0392b;margin-right:2px;">
-      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-    </button>
     <button class="fv-back-btn" onclick="fvDetailClose()">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
     </button>
@@ -5997,28 +5973,6 @@
     _detailEditActive = false;
   }
 
-  /* ── পার্সন ডিলিট — সিক্রেট কী যাচাই করে ── */
-  function fvDetailDelete() {
-    if (!_detailN || !_detailId) return;
-    const entered = prompt('এই ব্যক্তির সব ডেটা স্থায়ীভাবে মুছে যাবে।\nসিক্রেট কী দাও:');
-    if (entered === null) return;
-    if (entered !== _FB_SECRET) {
-      alert('❌ ভুল সিক্রেট কী! ডেটা মোছা হয়নি।');
-      return;
-    }
-    const n    = _detailN; /* fvDetailClose() এর আগে ধরে রাখা হলো, কারণ ওটা _detailN রিসেট করে দেয় */
-    const key  = EP_META[n].key;
-    const list = _lsGet(key);
-    const name = (list.find(x => x.id === _detailId) || {}).name || 'এই ব্যক্তি';
-    const newList = list.filter(x => x.id !== _detailId);
-    _lsSet(key, newList);
-    _fbAutoSync();
-    fvDetailClose();
-    epRender(n);
-    fvFilterRender();
-    alert('✓ ' + name + '-এর ডেটা মুছে ফেলা হয়েছে।');
-  }
-
   /* ── কার্ড থেকে সরাসরি ডিলিট ── */
   function fvCardDelete(n, itemId, evt) {
     evt.stopPropagation();
@@ -7122,55 +7076,6 @@ body #pk-body #validation-error {
             </div>
           </div>
         </div>
-        <!-- ── ক্ষতিগ্রস্ত/নষ্ট মাল ── -->
-        <div class="card">
-          <div class="card-head">
-            <span class="card-title">⚠️ লোকসান মাল</span>
-            
-          </div>
-          <div class="frow">
-            <span class="flabel">নষ্ট / ক্ষতিগ্রস্ত মালের মূল্য</span>
-            <div class="finput-wrap">
-              <input type="number" id="stockLoss" aria-label="লোকসান মাল" placeholder="0" inputmode="numeric">
-              <span class="funit">৳</span>
-            </div>
-          </div>
-        </div>
-        <!-- ── Stock অডিট (ঐচ্ছিক) ── -->
-        <div class="settings-group">
-          <div class="card">
-            <div class="card-head">
-              <span class="card-title"><svg aria-hidden="true" focusable="false" style="width:20px;height:20px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M6 20q-1.25 0-2.125-.875T3 17V8h18v9q0 1.25-.875 2.125T18 20zM3 7V5h6V4q0-.425.288-.712T10 3h4q.425 0 .713.288T15 4v1h6v2z" /></svg> প্রকৃত COGS (অডিট)</span>
-              <span class="cbadge purple">ঐচ্ছিক</span>
-            </div>
-            <div class="frow">
-              <span class="flabel">পূর্বের মজুদ</span>
-              <div class="finput-wrap">
-                <input type="number" id="openingStock" aria-label="পূর্বের মজুদ" placeholder="0" inputmode="numeric" oninput="PK.updateActualCOGS()">
-                <span class="funit">৳</span>
-              </div>
-            </div>
-            <div class="frow">
-              <span class="flabel">এই সপ্তাহে ক্রয়</span>
-              <div class="finput-wrap">
-                <input type="number" id="auditPurchase" aria-label="অডিট ক্রয়" placeholder="0" inputmode="numeric" oninput="PK.updateActualCOGS()">
-                <span class="funit">৳</span>
-              </div>
-            </div>
-            <div class="frow">
-              <span class="flabel">অবিক্রীত মাল</span>
-              <div class="finput-wrap">
-                <input type="number" id="closingStock" aria-label="অবিক্রীত মাল" placeholder="0" inputmode="numeric" oninput="PK.updateActualCOGS()">
-                <span class="funit">৳</span>
-              </div>
-            </div>
-            <div class="frow">
-              <span class="flabel flabel-auto">প্রকৃত COGS (অডিট)</span>
-              <div class="fauto" id="cogsAuto">—</div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <!-- STEP 3: SALES & PURCHASE -->
       <div id="validation-error" style="display:none;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.22);border-radius:10px;padding:11px 14px;margin-bottom:10px;font-size:13px;color:#b91c1c;font-weight:600;line-height:1.5;"></div>
@@ -7372,10 +7277,6 @@ body #pk-body #validation-error {
                 <div class="acc-row">
                   <div class="acc-row-left"><span class="acc-sign s-delta">×</span><span class="acc-row-label">বিক্রিত গজ × প্রতি গজ মুনাফা <em style="font-size:10px;color:var(--text3);">Yard-Based Method</em></span></div>
                   <span class="acc-row-val v-neutral" id="pEstProfit">—</span>
-                </div>
-                <div class="acc-row" id="stockLossRow" style="display:none;">
-                  <div class="acc-row-left"><span class="acc-sign s-minus">−</span><span class="acc-row-label">মজুদ সংকোচন / ক্ষতিলোপ <em style="font-size:10px;color:var(--text3);">Inventory Write-off</em></span></div>
-                  <span class="acc-row-val v-amber" id="pStockLoss">—</span>
                 </div>
                 <div class="acc-row acc-total-row">
                   <div class="acc-row-left"><span class="acc-row-label"><strong>আনুমানিত পণ্য বিক্রয় ব্যয় (Est. COGS)</strong></span></div>
@@ -7663,32 +7564,9 @@ body #pk-body #validation-error {
 
         </div><!-- /rcPanel3 -->
 
-        <!-- PANEL 4: Stock অডিট -->
+        <!-- PANEL 4: পণ্য ব্যয় ও মুনাফা -->
         <div class="rc-panel" id="rcPanel4">
           <div style="height:8px;"></div>
-
-            <!-- COGS Variance Alert -->
-            <div id="alertVariance" class="alert-banner ab-warning" style="display:none;margin-bottom:8px;">
-              <div class="ab-icon"></div>
-              <div class="ab-body">
-                <div><span class="ab-sev-badge">COGS VARIANCE &gt; 10%</span></div>
-                <div class="ab-title">পণ্য ব্যয় পার্থক্য সতর্কতা</div>
-                <div class="ab-desc">Stock অডিটের প্রকৃত COGS এবং গজ-পদ্ধতির আনুমানিত COGS-এর মধ্যে উল্লেখযোগ্য পার্থক্য।</div>
-                <div class="ab-action">১. গজ হিসাব পুনরায় যাচাই করুন ২. Opening/Closing Stock সঠিক কিনা দেখুন</div>
-              </div>
-              <button class="ab-close" onclick="dismissAlert('alertVariance')">✕</button>
-            </div>
-
-            <!-- Inventory Shrinkage Alert -->
-            <div id="alertShrinkage" class="alert-banner ab-orange" style="display:none;margin-bottom:8px;">
-              <div class="ab-icon"></div>
-              <div class="ab-body">
-                <div><span class="ab-sev-badge">SHRINKAGE &gt; 3%</span></div>
-                <div class="ab-title">মজুদ সংকোচন — Inventory Shrinkage</div>
-                <div class="ab-desc">মোট বিক্রয়ের ৩%-এর বেশি মাল নষ্ট বা লোকসান — ব্যবসায়িক সমস্যার ইঙ্গিত।</div>
-              </div>
-              <button class="ab-close" onclick="dismissAlert('alertShrinkage')">✕</button>
-            </div>
 
             <!-- Estimated COGS -->
             <div class="acc-card open" id="accEstCogs">
@@ -7722,84 +7600,6 @@ body #pk-body #validation-error {
                 <div class="acc-row acc-total-row">
                   <div class="acc-row-left"><span class="acc-row-label"><strong>আনুমানিত পণ্য বিক্রয় ব্যয় (Est. COGS)</strong></span></div>
                   <span class="acc-row-val bold v-red" id="auEstCOGS">—</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Actual COGS (Periodic Inventory) -->
-            <div class="acc-card" id="accActualCogs">
-              <div class="acc-header" onclick="toggleAcc('accActualCogs')">
-                <div class="acc-left">
-                  <div class="acc-icon-wrap ic-inv"></div>
-                  <div class="acc-titles">
-                    <div class="acc-title-main">প্রকৃত পণ্য বিক্রয় ব্যয়</div>
-                    <div class="acc-title-sub">Actual COGS — Periodic Inventory Method</div>
-                  </div>
-                </div>
-                <div class="acc-right">
-                  <span class="acc-tag tag-inv">ACTUAL</span>
-                  <span class="acc-total" style="font-family:var(--mono);font-size:14px;font-weight:800;color:#9d174d;" id="auActualCOGSHeader">—</span>
-                  <span class="acc-chevron">▼</span>
-                </div>
-              </div>
-              <div class="acc-body">
-                <div id="auActualContent">
-                  <div class="acc-row">
-                    <div class="acc-row-left"><span class="acc-sign s-plus">+</span><span class="acc-row-label">প্রারম্ভিক মজুদ মূল্য <em style="font-size:10px;color:var(--text3);">Opening Inventory Balance</em></span></div>
-                    <span class="acc-row-val v-neutral" id="auOpening">—</span>
-                  </div>
-                  <div class="acc-row">
-                    <div class="acc-row-left"><span class="acc-sign s-plus">+</span><span class="acc-row-label">মজুদ ক্রয় (অডিট কাল) <em style="font-size:10px;color:var(--text3);">Inventory Purchases</em></span></div>
-                    <span class="acc-row-val v-neutral" id="auPurchase">—</span>
-                  </div>
-                  <div class="acc-row">
-                    <div class="acc-row-left"><span class="acc-sign s-minus">−</span><span class="acc-row-label">সমাপনী মজুদ মূল্য <em style="font-size:10px;color:var(--text3);">Closing Inventory Balance</em></span></div>
-                    <span class="acc-row-val v-blue" id="auClosing">—</span>
-                  </div>
-                  <div class="acc-row acc-total-row">
-                    <div class="acc-row-left"><span class="acc-row-label"><strong>প্রকৃত পণ্য বিক্রয় ব্যয় (Actual COGS)</strong></span></div>
-                    <span class="acc-row-val bold v-red" id="auActualCOGS">—</span>
-                  </div>
-                  <!-- COGS Variance Analysis -->
-                  <div class="acc-analytics-box" style="margin:10px 14px 2px;">
-                    <div class="acc-analytics-title">পণ্য ব্যয় পার্থক্য বিশ্লেষণ — COGS Variance</div>
-                    <div class="acc-analytics-row"><span>প্রকৃত − আনুমানিত (Actual − Estimated)</span><span id="auVariance">—</span></div>
-                  </div>
-                  <div class="acc-variance-box ok" id="auVarianceBox" style="margin:6px 14px 4px;">
-                    <span class="acc-variance-label" id="auVarianceLabel">পার্থক্য</span>
-                    <span class="acc-variance-val" id="auVarianceVal">—</span>
-                  </div>
-                  <p class="acc-variance-note" id="auVarianceNote"></p>
-                </div>
-                <div id="auNoAudit" style="display:none;padding:16px;text-align:center;color:var(--text3);font-size:12px;line-height:1.6;">
-                  Stock অডিট ডেটা নেই<br><span style="font-size:11px;">Stock ধাপে প্রারম্ভিক মজুদ ও সমাপনী মজুদ পূরণ করুন</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Inventory Write-off -->
-            <div class="acc-card" id="accShrinkage">
-              <div class="acc-header" onclick="toggleAcc('accShrinkage')">
-                <div class="acc-left">
-                  <div class="acc-icon-wrap ic-cogs"></div>
-                  <div class="acc-titles">
-                    <div class="acc-title-main">মজুদ সংকোচন / ক্ষতিলোপ</div>
-                    <div class="acc-title-sub">Inventory Shrinkage / Write-off</div>
-                  </div>
-                </div>
-                <div class="acc-right">
-                  <span class="acc-tag tag-cogs">WRITE-OFF</span>
-                  <span class="acc-total tc-cogs" id="accShrinkageTotal">—</span>
-                  <span class="acc-chevron">▼</span>
-                </div>
-              </div>
-              <div class="acc-body">
-                <div class="acc-row" id="auLossRow">
-                  <div class="acc-row-left"><span class="acc-sign s-minus">−</span><span class="acc-row-label">নষ্ট মালের মূল্য (Damaged/Lost Stock)</span></div>
-                  <span class="acc-row-val v-amber" id="auStockLoss">—</span>
-                </div>
-                <div id="auNoLoss" style="display:none;padding:14px 16px;text-align:center;color:var(--text3);font-size:12px;">
-                  এই সপ্তাহে কোনো মজুদ সংকোচন নেই
                 </div>
               </div>
             </div>
@@ -8021,7 +7821,7 @@ body #pk-body #validation-error {
       wWifi:   n($('monthlyWifi').value) / 4.333,
       wMath:   n($('weeklyMath').value),
       wToilet: n($('weeklyToilet').value),
-      wZakat:  (n($('closingStock').value) + n($('cashSale').value) + n($('creditSale').value) + n($('cashPurchase').value)) * 0.025 / 52,
+      wZakat:  (n($('cashSale').value) + n($('creditSale').value) + n($('cashPurchase').value)) * 0.025 / 52,
     };
   }
 
@@ -8054,14 +7854,7 @@ body #pk-body #validation-error {
     $('estProfitAuto').textContent = estProfit > 0 ? T(estProfit) : '—';
   }
 
-  function updateActualCOGS() {
-    const op  = n($('openingStock').value);
-    const pur = n($('auditPurchase').value);
-    const cl  = n($('closingStock').value);
-    const sl  = n($('stockLoss').value);
-    const actual = op + pur - cl + sl;
-    $('cogsAuto').textContent = (op > 0 || pur > 0 || cl > 0) ? T(actual) : '—';
-  }
+  function updateActualCOGS() { /* Stock Audit ফিচার সরানো হয়েছে */ }
 
   function updateTotalSale() {
     const cs    = n($('cashSale').value);
@@ -8101,25 +7894,20 @@ body #pk-body #validation-error {
     const creditSale    = n($('creditSale').value);
     const totalSale     = cashSale + creditSale;
 
-    /* ── আনুমানিত COGS (প্রাথমিক) ── */
+    /* ── আনুমানিক COGS/Gross (গজ × প্রতি গজে লাভ পদ্ধতি) ── */
     const soldGaj    = n($('soldGaj').value);
     const profitGaj  = n($('profitGaj').value);
     const estProfit  = soldGaj * profitGaj;
     const estCogs    = totalSale - estProfit;        // মূল হিসাব
 
-    /* ── লোকসান মাল (COGS-এ যোগ করা হবে) ── */
-    const stockLoss  = n($('stockLoss').value);
+    const cogs   = estCogs;
+    const gross  = totalSale - cogs;                  // = estProfit (নগদ+বাকি বিক্রয় ভিত্তিক)
 
-    /* ── প্রকৃত COGS (Stock অডিট, ঐচ্ছিক) ── */
-    const openingStock   = n($('openingStock').value);
-    const auditPurchase  = n($('auditPurchase').value);
-    const closingStock   = n($('closingStock').value);
-    const hasAudit       = openingStock > 0 || auditPurchase > 0 || closingStock > 0;
-    const actualCogs     = openingStock + auditPurchase - closingStock + stockLoss;
+    /* ── নগদ বিক্রয়ের গজ (অনুপাত ভিত্তিক) ও তার গ্রস প্রফিট ── */
+    const cashSaleRatio = totalSale > 0 ? (cashSale / totalSale) : 0;
+    const cashSoldGaj   = soldGaj * cashSaleRatio;
+    const cashGross     = cashSoldGaj * profitGaj;    // শুধু নগদ বিক্রয়ের গ্রস প্রফিট
 
-    const cogs = estCogs + stockLoss;   // Stock লস COGS-এ যোগ করা হয়েছে
-
-    const gross       = totalSale - cogs;
     const salary      = n($('salary').value);
     const ownerSalary = n($('ownerSalary').value);
     const transport   = n($('transport').value);
@@ -8130,6 +7918,9 @@ body #pk-body #validation-error {
     const zakat       = f.wZakat;
     const fixedExp    = f.wRent + f.wElec + f.wWifi + f.wMath + f.wToilet;
     const netProfit   = gross - opex - fixedExp - zakat;
+
+    /* ── Cash Profit/Loss: নিট প্রফিটের সেইম লজিক, শুধু নগদ বিক্রয়ের গ্রস প্রফিট দিয়ে ── */
+    const cashProfit  = cashGross - opex - fixedExp - zakat;
 
     const cashPurchase  = n($('cashPurchase').value);
     const creditPurchase= n($('creditPurchase').value);
@@ -8175,7 +7966,6 @@ body #pk-body #validation-error {
 
     /* ══ ALERT CHECKS ══ */
     const creditRatio = totalSale > 0 ? creditSale / totalSale : 0;
-    const shrinkRatio = totalSale > 0 ? stockLoss / totalSale : 0;
 
     // Alert 1: Net Loss
     const al = $('ffh-alertLoss');
@@ -8202,9 +7992,8 @@ body #pk-body #validation-error {
     // CashFlow headers
     set('cfTotalInHeader',  T(cashIn));
     set('cfTotalOutHeader', T(cashOut));
-    // Stock audit headers
+    // Est. COGS header
     set('accEstCogsTotal',      T(estCogs));
-    set('accShrinkageTotal',    stockLoss > 0 ? T(stockLoss) : '—');
 
     /* ══ TAB 1 P&L: ACCORDION BODY VALUES ══ */
     // Sales analytics — declare BEFORE use
@@ -8226,14 +8015,6 @@ body #pk-body #validation-error {
     // COGS accordion
     set('pEstProfit', T(estProfit));
     set('pCOGS',      T(cogs));
-    if (stockLoss > 0) {
-      set('pStockLoss', T(stockLoss));
-      const row = $('stockLossRow');
-      if (row) row.style.display = '';
-    } else {
-      const row = $('stockLossRow');
-      if (row) row.style.display = 'none';
-    }
 
     // Gross Profit net row
     const pgEl = $('pGross');
@@ -8300,80 +8081,11 @@ body #pk-body #validation-error {
     set('diffOldCollection',  '+' + T(oldCollection));
     set('diffOldDebt',        '−' + T(oldDebt));
 
-    /* ══ TAB 4 STOCK AUDIT ══ */
+    /* ══ TAB 4: পণ্য ব্যয় ও মুনাফা ══ */
     set('auSoldGaj',   fmt(soldGaj) + ' গজ');
     set('auProfitGaj', T(profitGaj) + '/গজ');
     set('auEstProfit', T(estProfit));
     set('auEstCOGS',   T(estCogs));
-
-    // Shrinkage alert (> 3% of total sales)
-    const alShrink = $('alertShrinkage');
-    if (alShrink) alShrink.style.display = (shrinkRatio > 0.03 && stockLoss > 0) ? 'flex' : 'none';
-
-    // Stock loss
-    if (stockLoss > 0) {
-      set('auStockLoss', T(stockLoss));
-      const lrow = $('auLossRow'), noloss = $('auNoLoss');
-      if (lrow)   lrow.style.display = '';
-      if (noloss) noloss.style.display = 'none';
-    } else {
-      const lrow = $('auLossRow'), noloss = $('auNoLoss');
-      if (lrow)   lrow.style.display = 'none';
-      if (noloss) noloss.style.display = '';
-    }
-
-    /* প্রকৃত COGS (অডিট) */
-    const auActual  = $('auActualContent');
-    const auNone    = $('auNoAudit');
-    if (hasAudit) {
-      if (auActual) auActual.style.display = '';
-      if (auNone)   auNone.style.display   = 'none';
-      set('auOpening',          T(openingStock));
-      set('auPurchase',         T(auditPurchase));
-      set('auClosing',          T(closingStock));
-      set('auActualCOGS',       T(actualCogs));
-      set('auActualCOGSHeader', T(actualCogs));
-
-      /* COGS Variance Analysis */
-      const variance = actualCogs - estCogs;
-      const variancePct = estCogs > 0 ? Math.abs(variance) / estCogs : 0;
-      set('auVariance',    (variance >= 0 ? '+' : '') + T(variance));
-      set('auVarianceVal', (variance >= 0 ? '+' : '') + T(variance));
-
-      // Variance box class (enterprise: ok < 5%, warn 5-10%, crit > 10%)
-      const vbox = $('auVarianceBox');
-      if (vbox) {
-        if (variancePct < 0.05)       vbox.className = 'acc-variance-box ok';
-        else if (variancePct < 0.10)  vbox.className = 'acc-variance-box warn';
-        else                          vbox.className = 'acc-variance-box crit';
-      }
-
-      // Variance alert (> 10%)
-      const alVar = $('alertVariance');
-      if (alVar) alVar.style.display = variancePct > 0.10 ? 'flex' : 'none';
-
-      const vn = $('auVarianceNote');
-      if (vn) {
-        if (variancePct < 0.05) {
-          vn.style.color = '#16a34a';
-          vn.textContent = '✓ পণ্য ব্যয় মিলছে — Stock রেকর্ড সঠিক আছে (Variance < 5%)';
-        } else if (variancePct < 0.10) {
-          vn.style.color = '#b45309';
-          vn.textContent = variance > 0
-            ? '↑ প্রকৃত COGS সামান্য বেশি — গজ হিসাব যাচাই করুন (5–10%)'
-            : '↓ প্রকৃত COGS সামান্য কম — Stock রেকর্ড পরীক্ষা করুন (5–10%)';
-        } else {
-          vn.style.color = '#dc2626';
-          vn.textContent = variance > 0
-            ? '⚠ উল্লেখযোগ্য পার্থক্য — অতিরিক্ত মাল বিক্রি বা রেকর্ডে গড়মিল (>10%)'
-            : '⚠ উল্লেখযোগ্য পার্থক্য — Stockএ মাল বেশি বা গজ হিসাব পুনরায় করুন (>10%)';
-        }
-      }
-    } else {
-      if (auActual) auActual.style.display = 'none';
-      if (auNone)   auNone.style.display   = '';
-      set('auActualCOGSHeader', '—');
-    }
 
     /* RADIAL PROGRESS — reset আগে */
     function resetRadial(arcId, txtId) {
@@ -8404,6 +8116,7 @@ body #pk-body #validation-error {
     window._lastSales   = totalSale;
     window._lastCashIn  = cashIn;
     window._lastCashOut = cashOut;
+    window._lastCashProfit = cashProfit;
     window._lastOpex    = opex;
     window._lastFixed   = fixedExp;
     window._lastZakat   = zakat;
@@ -8433,13 +8146,11 @@ body #pk-body #validation-error {
   }
 
   function resetWeekly() {
-    ['openingStock','closingStock','stockLoss','auditPurchase',
-     'soldGaj','profitGaj',
+    ['soldGaj','profitGaj',
      'cashSale','creditSale','oldCollection',
      'cashPurchase','creditPurchase','oldDebt',
      'salary','ownerSalary','transport','vehicle','misc'
     ].forEach(id => { const el=$(id); if(el) el.value=''; });
-    $('cogsAuto').textContent       = '—';
     $('estProfitAuto').textContent  = '—';
     $('totalSaleAuto').textContent  = '—';
     $('result-empty').style.display    = 'block';
@@ -8466,6 +8177,7 @@ body #pk-body #validation-error {
     var cashIn      = e.cashIn  || 0;
     var cashOut     = e.cashOut || 0;
     var netCashflow = cashIn - cashOut;
+    var cashProfit  = e.cashProfit !== undefined ? e.cashProfit : netProfit;
     var opex        = e.opex    || 0;
     var fixedExp    = e.fixed   || 0;
     var cogs        = e.cogs    || 0;
@@ -8503,6 +8215,7 @@ body #pk-body #validation-error {
     window._lastSales   = totalSale;
     window._lastCashIn  = cashIn;
     window._lastCashOut = cashOut;
+    window._lastCashProfit = cashProfit;
     window._lastOpex    = opex;
     window._lastFixed   = fixedExp;
     window._lastCogs    = cogs;
@@ -8596,6 +8309,7 @@ body #pk-body #validation-error {
         sales:   Math.round(window._lastSales   || 0),
         cashIn:  Math.round(window._lastCashIn  || 0),
         cashOut: Math.round(window._lastCashOut || 0),
+        cashProfit: Math.round(window._lastCashProfit || 0),
         opex:    Math.round(window._lastOpex    || 0),
         fixed:   Math.round(window._lastFixed   || 0),
         cogs:    Math.round(window._lastCogs    || 0),
@@ -10385,7 +10099,6 @@ body {
 #pk-body .acc-icon-wrap.ic-opex { background: rgba(251,191,36,0.12);  border: 1px solid rgba(251,191,36,0.25); }
 #pk-body .acc-icon-wrap.ic-fixed { background: rgba(129,140,248,0.12); border: 1px solid rgba(129,140,248,0.25); }
 #pk-body .acc-icon-wrap.ic-cash { background: rgba(56,189,248,0.12);  border: 1px solid rgba(56,189,248,0.25); }
-#pk-body .acc-icon-wrap.ic-inv { background: rgba(244,114,182,0.12); border: 1px solid rgba(244,114,182,0.25); }
 #pk-body .acc-titles { min-width: 0; }
 #pk-body .acc-title-main {
       font-size: 12px; font-weight: 700;
@@ -10407,13 +10120,11 @@ body {
 #pk-body .acc-tag.tag-opex { background: rgba(251,191,36,0.14);  color: #b45309; }
 #pk-body .acc-tag.tag-fixed { background: rgba(129,140,248,0.14); color: #4338ca; }
 #pk-body .acc-tag.tag-cash { background: rgba(56,189,248,0.14);  color: #0369a1; }
-#pk-body .acc-tag.tag-inv { background: rgba(244,114,182,0.14); color: #9d174d; }
 #pk-body [data-theme="synthwave"] .acc-tag.tag-revenue { color: #4ade80; }
 #pk-body [data-theme="synthwave"] .acc-tag.tag-cogs { color: #fb923c; }
 #pk-body [data-theme="synthwave"] .acc-tag.tag-opex { color: #fbbf24; }
 #pk-body [data-theme="synthwave"] .acc-tag.tag-fixed { color: #818cf8; }
 #pk-body [data-theme="synthwave"] .acc-tag.tag-cash { color: #38bdf8; }
-#pk-body [data-theme="synthwave"] .acc-tag.tag-inv { color: #f472b6; }
 #pk-body .acc-total {
       font-family: var(--mono); font-size: 14px; font-weight: 800;
     }
@@ -10542,32 +10253,6 @@ body {
     }
 #pk-body .acc-analytics-row span:last-child.amber { color: #b45309; }
 #pk-body [data-theme="synthwave"] .acc-analytics-row span:last-child.amber { color: var(--amber); }
-
-    /* Variance box inside accordion */
-#pk-body .acc-variance-box {
-      margin: 8px 14px 12px;
-      padding: 10px 13px;
-      border-radius: 10px;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-#pk-body .acc-variance-box.ok { background: rgba(74,222,128,0.08);  border: 1px solid rgba(74,222,128,0.22); }
-#pk-body .acc-variance-box.warn { background: rgba(251,191,36,0.08);  border: 1px solid rgba(251,191,36,0.22); }
-#pk-body .acc-variance-box.crit { background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.22); }
-#pk-body .acc-variance-label { font-size: 13px; font-weight: 600; }
-#pk-body .acc-variance-val { font-family: var(--mono); font-weight: 800; font-size: 14px; }
-    .acc-variance-box.ok   .acc-variance-label,
-#pk-body .acc-variance-box.ok   .acc-variance-val { color: #16a34a; }
-    .acc-variance-box.warn .acc-variance-label,
-#pk-body .acc-variance-box.warn .acc-variance-val { color: #b45309; }
-    .acc-variance-box.crit .acc-variance-label,
-#pk-body .acc-variance-box.crit .acc-variance-val { color: #dc2626; }
-    [data-theme="synthwave"] .acc-variance-box.ok   .acc-variance-label,
-#pk-body [data-theme="synthwave"] .acc-variance-box.ok   .acc-variance-val { color: var(--green); }
-    [data-theme="synthwave"] .acc-variance-box.warn .acc-variance-label,
-#pk-body [data-theme="synthwave"] .acc-variance-box.warn .acc-variance-val { color: var(--amber); }
-    [data-theme="synthwave"] .acc-variance-box.crit .acc-variance-label,
-#pk-body [data-theme="synthwave"] .acc-variance-box.crit .acc-variance-val { color: var(--red); }
-#pk-body .acc-variance-note { padding: 0 14px 12px; font-size: 11px; color: var(--text3); }
 
     /* ── Cash Diff reconciliation box ── */
 #pk-body .acc-diff-box {
@@ -11182,16 +10867,6 @@ body {
   #pk-body #page-result .ab-title { font-weight: 600; }
   #pk-body #page-result .ab-sev-badge { border-radius: 4px; letter-spacing: 0.08em; }
 
-  /* ভ্যারিয়েন্স বক্স (Stock অডিট) — cream card, hairline বর্ডার */
-  #pk-body #page-result .acc-variance-box {
-    border-radius: 10px;
-    font-family: var(--fab-sans, 'Inter', sans-serif);
-  }
-  #pk-body #page-result .acc-variance-val {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-  }
-  #pk-body #page-result .acc-variance-note { color: #8e8b82; }
-
   /* Reconciliation ডিফ বক্স (ক্যাশফ্লো) — cream card, coral হেয়ারলাইন এক্সেন্ট */
   #pk-body #page-result .acc-diff-box {
     background: #f5f0e8;
@@ -11552,26 +11227,19 @@ function ffhRenderCashflowPie() {
   });
   gradDefs += '</defs>';
 
-  /* ── সবুজ 'নগদ আয়' সেগমেন্টের ভেতরেই নেস্টেড লেয়ার: নিট মুনাফার নগদ অংশ (একই কৌণিক পরিসরে, চিকন সাব-ব্যান্ড) ── */
-  var netVal   = e.net   !== undefined ? e.net   : netCF;
-  /* নিট মুনাফার নগদ অংশ — মোট বিক্রয়ের কতটা নগদে পাওয়া গেছে (cashIn/sales) সেই অনুপাত নিট মুনাফার উপর বসানো */
-  var salesVal = e.sales || 0;
-  var cashRatio = salesVal > 0 ? (cashIn / salesVal) : 0;
-  cashRatio = Math.max(0, Math.min(cashRatio, 1));
-  var cashOnHandVal = netVal * cashRatio;
+  /* ── সবুজ 'নগদ আয়' সেগমেন্টের ভেতরেই নেস্টেড লেয়ার: নিট ক্যাশ প্রফিট/লস (একই কৌণিক পরিসরে, চিকন সাব-ব্যান্ড) ── */
+  /* Cash Profit/Loss = নিট প্রফিটের সেইম লজিক, শুধু নগদ বিক্রয়ের গ্রস প্রফিট দিয়ে (গজ×লাভ পদ্ধতি) */
+  var cashOnHandVal = e.cashProfit !== undefined ? e.cashProfit : (e.net || 0);
   (function updateNetCashStrip() {
     var el = document.getElementById('kpiNetCashStrip');
     if (!el) return;
     var abs = Math.abs(cashOnHandVal);
     el.textContent = (cashOnHandVal < 0 ? '-' : '') + '৳' + Math.round(abs).toLocaleString('en-IN');
     el.classList.toggle('is-loss', cashOnHandVal < 0);
-    el.classList.toggle('is-profit', cashOnHandVal >= 0);
-    var cc = el.closest('.kpi-mini-card');
+    var cc = document.getElementById('kpiCashCard');
     if (cc) {
-      var cLbl = cc.querySelector('.card-title');
+      var cLbl = cc.querySelector('.profit-kpi-label');
       if (cLbl) cLbl.textContent = cashOnHandVal < 0 ? 'Weekly Cash Loss' : 'Weekly Cash Profit';
-      cc.style.background   = cashOnHandVal < 0 ? 'oklch(96% 0.04 20)'  : '';
-      cc.style.borderColor  = cashOnHandVal < 0 ? 'oklch(82% 0.12 20)'  : '';
     }
   })();
   (function drawNestedCashLayer() {
@@ -11586,8 +11254,8 @@ function ffhRenderCashflowPie() {
     var frac = cashIn > 0 ? (cashOnHandVal / cashIn) : 0;
     frac = Math.max(0, Math.min(Math.abs(frac), 1));
 
-    /* ── Cash Profit আর্ক (নিট মুনাফা ধনাত্মক হলে) ── */
-    if (netVal >= 0 && frac > 0) {
+    /* ── Cash Profit আর্ক (ক্যাশ ফ্লো ধনাত্মক হলে) ── */
+    if (cashOnHandVal >= 0 && frac > 0) {
       var sA = cashSegStartA, eA = cashSegStartA + frac * (cashSegEndA - cashSegStartA);
       var large = (eA - sA) > Math.PI ? 1 : 0;
       var cohColor1 = 'oklch(88% 0.09 160)';
@@ -11608,8 +11276,8 @@ function ffhRenderCashflowPie() {
       paths += '<path d="' + d + '" fill="url(#' + gid + ')" stroke="#fff" stroke-width="0.75"/>';
     }
 
-    /* ── Cash Loss আর্ক (নিট মুনাফা ঋণাত্মক হলে, লাল রঙে) ── */
-    if (netVal < 0 && frac > 0) {
+    /* ── Cash Loss আর্ক (ক্যাশ ফ্লো ঋণাত্মক হলে, লাল রঙে) ── */
+    if (cashOnHandVal < 0 && frac > 0) {
       var lsA = cashSegStartA, leA = cashSegStartA + frac * (cashSegEndA - cashSegStartA);
       var lLarge = (leA - lsA) > Math.PI ? 1 : 0;
       var lossColor1 = 'oklch(68% 0.20 25)';
@@ -11652,11 +11320,11 @@ function ffhRenderCashflowPie() {
       + '<span style="flex-shrink:0;font-family:\'IBM Plex Mono\',monospace;font-size:10px;color:#8a8896;min-width:38px;text-align:right;">' + valFmt + '৳</span>'
       + '</div>';
   });
-  /* নিট মুনাফার নগদ অংশ — এই সপ্তাহের বিক্রয়ের কতটা নগদে পাওয়া গেছে সেই অনুপাত নিট মুনাফার উপর */
+  /* Cash Profit/Loss = শুধু নগদ আয় − নগদ ব্যয় */
   var cohAbs = Math.abs(cashOnHandVal);
   var cohFmt = (cashOnHandVal >= 0 ? '+' : '−')
     + (cohAbs >= 100000 ? (cohAbs/100000).toFixed(1)+'ল' : cohAbs >= 1000 ? (cohAbs/1000).toFixed(1)+'হা' : cohAbs) + '৳';
-  if (netVal >= 0) {
+  if (cashOnHandVal >= 0) {
     var cohColor = 'oklch(68% 0.14 175)';
     legHTML += '<div style="display:flex;align-items:center;gap:5px;min-width:0;">'
       + '<span style="flex-shrink:0;width:9px;height:9px;border-radius:50%;background:' + cohColor + ';"></span>'
