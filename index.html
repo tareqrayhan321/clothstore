@@ -3264,7 +3264,7 @@
       <div class="profit-kpi-label">Weekly Gross Profit</div>
       <div class="profit-kpi-value" id="kpiGrossProfitStrip">—</div>
     </div>
-    <div class="profit-kpi-card profit-kpi-net">
+    <div class="profit-kpi-card profit-kpi-net" id="kpiNetCard" onclick="showNetProfitBreakdown()" style="cursor:pointer;">
       <div class="profit-kpi-label">Weekly Net Profit</div>
       <div class="profit-kpi-value" id="kpiNetProfitStrip">—</div>
     </div>
@@ -3786,8 +3786,127 @@
 </div>
 
 <!-- ══════════════════════════════════════
-     কাপড় ক্রয় হিসাব OVERLAY
+     WEEKLY NET PROFIT/LOSS ব্রেকডাউন OVERLAY
 ══════════════════════════════════════ -->
+<div id="netBreakdownOverlay" style="display:none; position:fixed; inset:0; z-index:910;
+  background:var(--bg,#f5f0eb); flex-direction:column; overflow:hidden;">
+
+  <!-- হেডার -->
+  <div style="display:flex; align-items:center; gap:10px;
+    padding:12px 14px; background:var(--surface,#fff);
+    border-bottom:1px solid var(--border,#e5e5e5);
+    position:sticky; top:0; z-index:2;">
+    <button onclick="netBreakdownClose()" style="width:48px; height:48px; border-radius:0; margin-left:-8px;
+      border:none; background:transparent; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--text2,#555); padding:0;">
+      <svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor"><path d="M16 7.5a.5.5 0 0 0-.5-.5H6.71l3.15-3.15a.5.5 0 0 0-.707-.707l-4 4a.5.5 0 0 0-.146.351V7.5a.5.5 0 0 0 .147.35l4 4a.5.5 0 0 0 .707-.707l-3.15-3.15h8.79a.5.5 0 0 0 .5-.5z"/></svg>
+    </button>
+    <span style="font-size:13px; font-weight:700; color:var(--text,#222);
+      letter-spacing:0.02em; border-left:2px solid #cc785c; padding-left:8px;">নিট প্রফিট/লস — বিস্তারিত</span>
+    <span id="nbWeekLabel" style="font-size:11px; color:var(--text3,#888); margin-left:4px;"></span>
+  </div>
+
+  <!-- বডি -->
+  <div style="flex:1; overflow-y:auto; padding:14px 12px 40px;">
+
+    <!-- খালি state -->
+    <div id="nbEmpty" style="display:none; padding:50px 20px; text-align:center;">
+      <div style="font-size:40px; opacity:0.2;">📄</div>
+      <div style="font-size:13px; color:var(--text3,#888); margin-top:12px; line-height:1.7;">
+        এখনো কোনো সাপ্তাহিক হিসাব সংরক্ষিত নেই।<br>
+        আগে "হিসাব করুন" থেকে এই সপ্তাহের তথ্য দিয়ে সংরক্ষণ করুন।
+      </div>
+    </div>
+
+    <!-- ব্রেকডাউন কনটেন্ট -->
+    <div id="nbContent" style="display:none;">
+
+      <!-- চূড়ান্ত ফলাফল ব্যানার -->
+      <div id="nbResultBanner" style="border-radius:14px; padding:16px 18px; margin-bottom:16px; text-align:center;">
+        <div id="nbResultLabel" style="font-size:12px; font-weight:700; opacity:0.75; letter-spacing:0.03em;">Weekly Net Profit</div>
+        <div id="nbResultVal" style="font-size:26px; font-weight:800; font-family:'JetBrains Mono', monospace; margin-top:4px;">—</div>
+      </div>
+
+      <!-- ধাপে ধাপে বিবরণ -->
+      <div style="background:var(--surface,#fff); border:1px solid var(--border,#e5e5e5); border-radius:14px; overflow:hidden;">
+
+        <div class="nb-row nb-row-plus">
+          <div class="nb-row-label">
+            <span>নগদ বিক্রয় + বাকি বিক্রয়</span>
+            <em>মোট বিক্রয় (Total Sales)</em>
+          </div>
+          <span class="nb-row-val" id="nbSales">—</span>
+        </div>
+
+        <div class="nb-row nb-row-minus">
+          <div class="nb-row-label">
+            <span>(−) আনুমানিক পণ্য ব্যয়</span>
+            <em>COGS = বিক্রয় − (গজ × প্রতি গজে লাভ)</em>
+          </div>
+          <span class="nb-row-val" id="nbCogs">—</span>
+        </div>
+
+        <div class="nb-row nb-row-subtotal">
+          <div class="nb-row-label"><strong>= গ্রস প্রফিট/লস (Gross)</strong></div>
+          <span class="nb-row-val" id="nbGross">—</span>
+        </div>
+
+        <div class="nb-row nb-row-minus">
+          <div class="nb-row-label">
+            <span>(−) পরিচালন ব্যয়</span>
+            <em>বেতন + মালিকের বেতন + পরিবহন + যানবাহন + বিবিধ</em>
+          </div>
+          <span class="nb-row-val" id="nbOpex">—</span>
+        </div>
+
+        <div class="nb-row nb-row-minus">
+          <div class="nb-row-label">
+            <span>(−) স্থায়ী খরচ</span>
+            <em>ভাড়া + বিদ্যুৎ + ওয়াইফাই + অন্যান্য + টয়লেট</em>
+          </div>
+          <span class="nb-row-val" id="nbFixed">—</span>
+        </div>
+
+        <div class="nb-row nb-row-minus">
+          <div class="nb-row-label">
+            <span>(−) যাকাত</span>
+            <em>সাপ্তাহিক যাকাত (২.৫% বার্ষিক হার)</em>
+          </div>
+          <span class="nb-row-val" id="nbZakat">—</span>
+        </div>
+
+        <div class="nb-row nb-row-final">
+          <div class="nb-row-label"><strong>= নিট প্রফিট/লস (Net)</strong></div>
+          <span class="nb-row-val" id="nbNet">—</span>
+        </div>
+
+      </div>
+
+      <!-- সংক্ষিপ্ত সারমর্ম -->
+      <div id="nbSummaryNote" style="margin-top:16px; padding:12px 14px; border-radius:10px; font-size:12px; line-height:1.7;"></div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  .nb-row {
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:12px 14px; border-bottom:1px solid var(--border,#eee);
+  }
+  .nb-row:last-child { border-bottom:none; }
+  .nb-row-label { display:flex; flex-direction:column; gap:2px; font-size:13px; color:var(--text,#222); }
+  .nb-row-label em { font-style:normal; font-size:10.5px; color:var(--text3,#8a8a8a); }
+  .nb-row-val { font-family:'JetBrains Mono', monospace; font-weight:700; font-size:13.5px; white-space:nowrap; flex-shrink:0; }
+  .nb-row-plus .nb-row-val { color:#16a34a; }
+  .nb-row-minus .nb-row-val { color:#c0392b; }
+  .nb-row-subtotal { background:rgba(0,0,0,0.02); }
+  .nb-row-subtotal .nb-row-val { color:var(--text,#222); }
+  .nb-row-final { background:rgba(0,0,0,0.035); }
+  .nb-row-final .nb-row-val { font-size:15px; }
+</style>
+
+
 <div id="fabricOverlay" style="display:none; position:fixed; inset:0; z-index:900;
   background:#faf9f5; flex-direction:column; overflow:hidden; font-family:var(--fab-sans,'Noto Sans Bengali',sans-serif);">
 
@@ -8117,6 +8236,8 @@ body #pk-body #validation-error {
     window._lastCashIn  = cashIn;
     window._lastCashOut = cashOut;
     window._lastCashProfit = cashProfit;
+    window._lastCashPurchase = cashPurchase;
+    window._lastOldDebt      = oldDebt;
     window._lastOpex    = opex;
     window._lastFixed   = fixedExp;
     window._lastZakat   = zakat;
@@ -8181,6 +8302,9 @@ body #pk-body #validation-error {
     var opex        = e.opex    || 0;
     var fixedExp    = e.fixed   || 0;
     var cogs        = e.cogs    || 0;
+    var cashPurchase= e.cashPurchase !== undefined ? e.cashPurchase : cashOut;
+    var oldDebt     = e.oldDebt || 0;
+    var zakat       = e.zakat   || 0;
 
     var kpiPC = $('kpiProfitCard');
     if (kpiPC) kpiPC.className = 'kpi-card ' + (netProfit >= 0 ? 'kpi-profit' : 'kpi-loss');
@@ -8216,9 +8340,12 @@ body #pk-body #validation-error {
     window._lastCashIn  = cashIn;
     window._lastCashOut = cashOut;
     window._lastCashProfit = cashProfit;
+    window._lastCashPurchase = cashPurchase;
+    window._lastOldDebt      = oldDebt;
     window._lastOpex    = opex;
     window._lastFixed   = fixedExp;
     window._lastCogs    = cogs;
+    window._lastZakat   = zakat;
 
     /* ══ চারটা ট্যাবের accordion টোটাল — সেভ করা সামারি ডাটা থেকে যতটা সম্ভব পূরণ,
        যাতে সংরক্ষিত রিপোর্ট খুললে টেবিল একদম ফাঁকা না থাকে।
@@ -8310,9 +8437,12 @@ body #pk-body #validation-error {
         cashIn:  Math.round(window._lastCashIn  || 0),
         cashOut: Math.round(window._lastCashOut || 0),
         cashProfit: Math.round(window._lastCashProfit || 0),
+        cashPurchase: Math.round(window._lastCashPurchase || 0),
+        oldDebt:      Math.round(window._lastOldDebt || 0),
         opex:    Math.round(window._lastOpex    || 0),
         fixed:   Math.round(window._lastFixed   || 0),
         cogs:    Math.round(window._lastCogs    || 0),
+        zakat:   Math.round(window._lastZakat   || 0),
       };
       const idx = data.findIndex(e => e.year === entry.year && e.week === entry.week);
       if (idx >= 0) { data[idx] = entry; } else { data.push(entry); }
@@ -8671,18 +8801,20 @@ body #pk-body #validation-error {
 
     var cashIn  = e.cashIn  || 0;
     var cashOut = e.cashOut || 0;
-    var cogs    = e.cogs    || 0;
+    var cashPurchase = e.cashPurchase !== undefined ? e.cashPurchase : cashOut;
+    var oldDebt = e.oldDebt || 0;
     var opex    = e.opex    || 0;
     var fixed   = e.fixed   || 0;
     var netCF   = cashIn - cashOut;
 
-    /* --- পাই সেগমেন্ট ডেটা (cashOut breakdown + cashIn) --- */
+    /* --- পাই সেগমেন্ট ডেটা (cashOut breakdown + cashIn, সম্পূর্ণ নগদ-ভিত্তিক) --- */
     var total = cashIn + cashOut;
     if (total === 0) total = 1;
 
     var segments = [
-      { label: 'নগদ আয়',      val: cashIn,  color: 'oklch(55% 0.17 160)',  clr2: 'oklch(40% 0.14 160)'  },
-      { label: 'পণ্য ক্রয়', val: cogs,    color: 'oklch(60% 0.18 22)',   clr2: 'oklch(45% 0.16 22)'   },
+      { label: 'নগদ আয়',      val: cashIn,       color: 'oklch(55% 0.17 160)',  clr2: 'oklch(40% 0.14 160)'  },
+      { label: 'নগদ ক্রয়',    val: cashPurchase, color: 'oklch(60% 0.18 22)',   clr2: 'oklch(45% 0.16 22)'   },
+      { label: 'পুরনো দেনা',   val: oldDebt,      color: 'oklch(58% 0.20 350)',  clr2: 'oklch(43% 0.17 350)'  },
       { label: 'Maintenance Costs', val: opex,    color: 'oklch(70% 0.16 60)',   clr2: 'oklch(55% 0.14 60)'   },
       { label: 'Fixed Costs',   val: fixed,   color: 'oklch(62% 0.16 280)',  clr2: 'oklch(48% 0.14 280)'  },
     ].filter(function(s) { return s.val > 0; });
@@ -11180,14 +11312,16 @@ function ffhRenderCashflowPie() {
 
   var cashIn  = e.cashIn  || 0;
   var cashOut = e.cashOut || 0;
-  var cogs    = e.cogs    || 0;
+  var cashPurchase = e.cashPurchase !== undefined ? e.cashPurchase : cashOut;
+  var oldDebt = e.oldDebt || 0;
   var opex    = e.opex    || 0;
   var fixed   = e.fixed   || 0;
   var netCF   = cashIn - cashOut;
 
   var segments = [
-    { label: 'নগদ আয়',           val: cashIn, color: 'oklch(55% 0.17 160)', clr2: 'oklch(40% 0.14 160)' },
-    { label: 'পণ্য ক্রয়', val: cogs,   color: 'oklch(60% 0.18 22)',  clr2: 'oklch(45% 0.16 22)'  },
+    { label: 'নগদ আয়',           val: cashIn,       color: 'oklch(55% 0.17 160)', clr2: 'oklch(40% 0.14 160)' },
+    { label: 'নগদ ক্রয়',         val: cashPurchase, color: 'oklch(60% 0.18 22)',  clr2: 'oklch(45% 0.16 22)'  },
+    { label: 'পুরনো দেনা',        val: oldDebt,      color: 'oklch(58% 0.20 350)', clr2: 'oklch(43% 0.17 350)' },
     { label: 'Maintenance Costs', val: opex,   color: 'oklch(70% 0.16 60)',  clr2: 'oklch(55% 0.14 60)'  },
     { label: 'Fixed Costs',       val: fixed,  color: 'oklch(62% 0.16 280)', clr2: 'oklch(48% 0.14 280)' },
   ].filter(function(s) { return s.val > 0; });
@@ -11810,6 +11944,102 @@ function aggOverlayClose() {
 }
 window.aggOverlayOpen  = aggOverlayOpen;
 window.aggOverlayClose = aggOverlayClose;
+
+/* ── Weekly Net Profit/Loss ব্রেকডাউন ── */
+function showNetProfitBreakdown() {
+  var overlay = document.getElementById('netBreakdownOverlay');
+  var emptyEl = document.getElementById('nbEmpty');
+  var contEl  = document.getElementById('nbContent');
+  if (!overlay) return;
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  var data = (function() {
+    try { return JSON.parse(localStorage.getItem('chart_data') || '[]'); } catch(e) { return []; }
+  })();
+
+  if (!data || data.length === 0) {
+    emptyEl.style.display = 'block';
+    contEl.style.display  = 'none';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  contEl.style.display  = 'block';
+
+  var sorted = data.slice().sort(function(a, b) { return b.ts - a.ts; });
+  var e = sorted[0];
+
+  var T = function(v) {
+    v = Math.round(v || 0);
+    return (v < 0 ? '-' : '') + '৳' + Math.abs(v).toLocaleString('en-IN');
+  };
+
+  var sales  = e.sales || 0;
+  var cogs   = e.cogs  || 0;
+  var gross  = e.gross !== undefined ? e.gross : (sales - cogs);
+  var opex   = e.opex  || 0;
+  var fixed  = e.fixed || 0;
+  var zakat  = e.zakat || 0;
+  var net    = e.net   || 0;
+
+  document.getElementById('nbWeekLabel').textContent = e.label || '';
+
+  document.getElementById('nbSales').textContent = T(sales);
+  document.getElementById('nbCogs').textContent  = '−' + T(cogs).replace('-', '');
+  document.getElementById('nbGross').textContent = T(gross);
+  document.getElementById('nbOpex').textContent  = opex  > 0 ? '−' + T(opex).replace('-', '')  : '—';
+  document.getElementById('nbFixed').textContent = fixed > 0 ? '−' + T(fixed).replace('-', '') : '—';
+  document.getElementById('nbZakat').textContent = zakat > 0 ? '−' + T(zakat).replace('-', '') : '—';
+  document.getElementById('nbNet').textContent   = T(net);
+  document.getElementById('nbNet').style.color   = net < 0 ? '#c0392b' : '#16a34a';
+
+  var banner = document.getElementById('nbResultBanner');
+  var rLabel = document.getElementById('nbResultLabel');
+  var rVal   = document.getElementById('nbResultVal');
+  if (net < 0) {
+    banner.style.background = 'oklch(96% 0.04 20)';
+    banner.style.border     = '1px solid oklch(82% 0.12 20)';
+    rLabel.textContent = 'Weekly Net Loss';
+    rLabel.style.color = '#c0392b';
+    rVal.style.color   = '#c0392b';
+  } else {
+    banner.style.background = 'oklch(96% 0.05 150)';
+    banner.style.border     = '1px solid oklch(85% 0.10 150)';
+    rLabel.textContent = 'Weekly Net Profit';
+    rLabel.style.color = '#16a34a';
+    rVal.style.color   = '#16a34a';
+  }
+  rVal.textContent = T(net);
+
+  /* সংক্ষিপ্ত ব্যাখ্যা */
+  var noteEl = document.getElementById('nbSummaryNote');
+  var biggestExpense = [
+    { name: 'পণ্য ব্যয় (COGS)', v: cogs },
+    { name: 'পরিচালন ব্যয়',     v: opex },
+    { name: 'স্থায়ী খরচ',       v: fixed },
+    { name: 'যাকাত',            v: zakat },
+  ].sort(function(a, b) { return b.v - a.v; })[0];
+
+  if (net < 0) {
+    noteEl.style.background = 'oklch(97% 0.03 20)';
+    noteEl.style.color = '#8a3a2f';
+    noteEl.innerHTML = '⚠️ এই সপ্তাহে <strong>' + T(Math.abs(net)) + ' টাকা লোকসান</strong> হয়েছে। '
+      + (biggestExpense.v > 0
+          ? 'সবচেয়ে বড় খরচ ছিল <strong>' + biggestExpense.name + '</strong> (' + T(biggestExpense.v) + ') — এই খাতে ব্যয় কমানো বা বিক্রয়/গজে-লাভ বাড়ানোর দিকে নজর দিন।'
+          : 'বিক্রয়ের তুলনায় মোট খরচ বেশি হয়ে গেছে।');
+  } else {
+    noteEl.style.background = 'oklch(97% 0.03 150)';
+    noteEl.style.color = '#2f6b3a';
+    noteEl.innerHTML = '✓ এই সপ্তাহে <strong>' + T(net) + ' টাকা লাভ</strong> হয়েছে। '
+      + 'গ্রস প্রফিট ' + T(gross) + ' থেকে সব খরচ (' + T(opex + fixed + zakat) + ') বাদ দেওয়ার পরও নিট মুনাফা রয়ে গেছে।';
+  }
+}
+function netBreakdownClose() {
+  document.getElementById('netBreakdownOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+window.showNetProfitBreakdown = showNetProfitBreakdown;
+window.netBreakdownClose      = netBreakdownClose;
 </script>
 
 <script>
