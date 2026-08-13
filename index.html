@@ -11775,23 +11775,29 @@ function loadProfitStripData() {
 }
 
 function updateProfitStrip() {
-  /* প্রথমে in-memory ভ্যালু চেক করো, না থাকলে localStorage থেকে নাও */
-  var net, gross;
-  if (window._lastNet !== undefined && window._lastNet !== null) {
-    net   = window._lastNet;
-    gross = window._lastGross || 0;
-  } else {
-    var saved = loadProfitStripData();
-    if (saved) {
-      net   = saved.net   || 0;
-      gross = saved.gross || 0;
-      window._lastNet   = net;
-      window._lastGross = gross;
-    } else {
-      net   = 0;
-      gross = 0;
+  /* chart_data-ই একমাত্র নির্ভরযোগ্য সোর্স — window._lastNet সেশনে বেঁচে থাকে এবং
+     ভিন্ন সপ্তাহ ভিউ করলে পুরনো/ভুল মান রয়ে যেতে পারে, তাই dashboard KPI সবসময়
+     সরাসরি সবচেয়ে সাম্প্রতিক সংরক্ষিত এন্ট্রি থেকেই পড়বে। */
+  var net = 0, gross = 0, hasData = false;
+  try {
+    var data = JSON.parse(localStorage.getItem('chart_data') || '[]');
+    if (data && data.length > 0) {
+      var sorted = data.slice().sort(function(a, b) { return b.ts - a.ts; });
+      var e = sorted[0];
+      net   = e.net   || 0;
+      gross = e.gross !== undefined ? e.gross : net;
+      hasData = true;
+    }
+  } catch (err) { /* localStorage/parse ব্যর্থ হলে নিরাপদে ০ দেখাও */ }
+
+  if (!hasData) {
+    /* fallback: এই সেশনেই সদ্য হিসাব করা থাকলে তা দেখাও (এখনো সংরক্ষণ না করা থাকলেও) */
+    if (window._lastNet !== undefined && window._lastNet !== null) {
+      net   = window._lastNet;
+      gross = window._lastGross || 0;
     }
   }
+
   var T = function(v) {
     return (v < 0 ? '-' : '') + '৳' + Math.abs(Math.round(v)).toLocaleString('en-IN');
   };
