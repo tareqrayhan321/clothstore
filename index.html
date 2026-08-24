@@ -4681,6 +4681,8 @@
           if (typeof ffhRenderCashflowPie === 'function') ffhRenderCashflowPie();
           if (typeof renderCashflowPie === 'function') renderCashflowPie();
           if (typeof renderAggReportChart === 'function') renderAggReportChart();
+          if (typeof renderCharts === 'function') renderCharts();
+          if (typeof restoreLastSavedReport === 'function') restoreLastSavedReport();
 
           /* স্ট্যাটাস ও নোটিফিকেশন */
           _dbSetStatus('connected', '🔄 অন্য ডিভাইস থেকে আপডেট এসেছে', _dbLastSyncText());
@@ -4802,6 +4804,9 @@
           if (typeof epUpdateCardStats === 'function') epUpdateCardStats();
         if (typeof fabricRender === 'function') fabricRender();
         if (typeof updateProfitStrip === 'function') updateProfitStrip();
+        if (typeof renderCharts === 'function') renderCharts();
+        if (typeof renderAggReportChart === 'function') renderAggReportChart();
+        if (typeof restoreLastSavedReport === 'function') restoreLastSavedReport();
 
       } catch(e) {
         _pendingSync = true;
@@ -8478,6 +8483,9 @@ body #pk-body #validation-error {
       renderAggReportChart();
       if (typeof ffhRenderCashflowPie === 'function') ffhRenderCashflowPie();
       if (typeof aggOvRender === 'function') aggOvRender();
+      /* ড্যাশবোর্ড KPI কার্ড (সর্বশেষ সংরক্ষিত রিপোর্ট) সাথে সাথে রিফ্রেশ করো,
+         নইলে পেজ রিলোড না করা পর্যন্ত পুরনো সংখ্যাই দেখা যাবে */
+      if (typeof restoreLastSavedReport === 'function') restoreLastSavedReport();
     } catch(e) {
       alert('সংরক্ষণে সমস্যা: ' + e.message);
     }
