@@ -8494,10 +8494,11 @@ body #pk-body #validation-error {
       renderAggReportChart();
       if (typeof ffhRenderCashflowPie === 'function') ffhRenderCashflowPie();
       if (typeof aggOvRender === 'function') aggOvRender();
-      /* ড্যাশবোর্ড KPI কার্ড (Weekly Gross/Net/Cash Profit-Loss + Aggregate Report)
-         সাথে সাথে রিফ্রেশ করো, নইলে পেজ রিলোড না করা পর্যন্ত পুরনো সংখ্যাই দেখা যাবে */
+      /* ড্যাশবোর্ড KPI স্ট্রিপ (Weekly Gross/Net/Cash Profit-Loss) রিফ্রেশ করা হচ্ছে,
+         কিন্তু restoreLastSavedReport() এখানে কল করা হয় না — সেটা রেজাল্ট পেজের
+         এইমাত্র calculate() দিয়ে সঠিকভাবে রেন্ডার করা বিস্তারিত টেবিল/ব্রেকডাউনকে
+         সামারি ডাটা দিয়ে ওভাররাইট করে পেজ ফাঁকা/অসম্পূর্ণ দেখাচ্ছিল */
       if (typeof updateProfitStrip === 'function') updateProfitStrip();
-      if (typeof restoreLastSavedReport === 'function') restoreLastSavedReport();
     } catch(e) {
       alert('সংরক্ষণে সমস্যা: ' + e.message);
     }
