@@ -4682,6 +4682,7 @@
           if (typeof renderCashflowPie === 'function') renderCashflowPie();
           if (typeof renderAggReportChart === 'function') renderAggReportChart();
           if (typeof renderCharts === 'function') renderCharts();
+          if (typeof aggOvRender === 'function') aggOvRender();
           if (typeof restoreLastSavedReport === 'function') restoreLastSavedReport();
 
           /* স্ট্যাটাস ও নোটিফিকেশন */
@@ -4806,6 +4807,7 @@
         if (typeof updateProfitStrip === 'function') updateProfitStrip();
         if (typeof renderCharts === 'function') renderCharts();
         if (typeof renderAggReportChart === 'function') renderAggReportChart();
+        if (typeof aggOvRender === 'function') aggOvRender();
         if (typeof restoreLastSavedReport === 'function') restoreLastSavedReport();
 
       } catch(e) {
@@ -8269,6 +8271,15 @@ body #pk-body #validation-error {
         animateRadial('radialCashArc',   'radialCashTxt',   cashRate);
       });
     }, 380);
+
+    /* হিসাব করুন চাপলেই সাথে সাথে chart_data-তে সংরক্ষণ করো — আলাদা করে
+       'গ্রাফে যোগ' বাটন চাপার দরকার নেই, নইলে ড্যাশবোর্ডের KPI/Aggregate
+       কার্ড আপডেট না হয়ে পুরনো সপ্তাহের সংখ্যাই দেখাতে থাকে।
+       রেজাল্ট পেজ সম্পূর্ণ রেন্ডার হওয়ার পরে, একটু দেরিতে সেভ করা হচ্ছে,
+       যাতে পেজ রেন্ডারিং কোনোভাবে ব্যাহত না হয়। */
+    setTimeout(() => {
+      if (typeof saveToChart === 'function') saveToChart();
+    }, 50);
   }
 
   function resetWeekly() {
@@ -8483,8 +8494,9 @@ body #pk-body #validation-error {
       renderAggReportChart();
       if (typeof ffhRenderCashflowPie === 'function') ffhRenderCashflowPie();
       if (typeof aggOvRender === 'function') aggOvRender();
-      /* ড্যাশবোর্ড KPI কার্ড (সর্বশেষ সংরক্ষিত রিপোর্ট) সাথে সাথে রিফ্রেশ করো,
-         নইলে পেজ রিলোড না করা পর্যন্ত পুরনো সংখ্যাই দেখা যাবে */
+      /* ড্যাশবোর্ড KPI কার্ড (Weekly Gross/Net/Cash Profit-Loss + Aggregate Report)
+         সাথে সাথে রিফ্রেশ করো, নইলে পেজ রিলোড না করা পর্যন্ত পুরনো সংখ্যাই দেখা যাবে */
+      if (typeof updateProfitStrip === 'function') updateProfitStrip();
       if (typeof restoreLastSavedReport === 'function') restoreLastSavedReport();
     } catch(e) {
       alert('সংরক্ষণে সমস্যা: ' + e.message);
