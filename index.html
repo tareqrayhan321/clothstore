@@ -6816,6 +6816,7 @@
 #paikkariOverlay.pk-open{display:flex;}
 #pk-drawer{
   width:100%;max-width:700px;
+  height:92vh;
   height:92dvh;
   background:#1a2e20;
   border-radius:20px 20px 0 0;
@@ -6831,7 +6832,7 @@
   background:rgba(255,255,255,0.25);
   margin:10px auto 0;flex-shrink:0;
 }
-#pk-body{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+#pk-body{flex:1;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;min-height:0;}
 
 /* লাইট মোডে */
 body #pk-drawer { background:#faf9f5; }
@@ -9451,8 +9452,8 @@ body {
 #pk-body .app-shell {
       display: flex;
       flex-direction: column;
-      height: 100vh;
-      height: 100dvh;
+      flex: 1;
+      min-height: 0;
       overflow: hidden;
     }
 
@@ -9464,6 +9465,7 @@ body {
     ══════════════════════════════════ */
 #pk-body .pages-container {
       flex: 1;
+      min-height: 0;
       overflow: hidden;
       position: relative;
     }
