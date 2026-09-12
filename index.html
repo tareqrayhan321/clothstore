@@ -6262,12 +6262,6 @@
 
   function fvEditOpen(n, id, evt) {
     evt.stopPropagation();
-    const entered = prompt('তথ্য সম্পাদনা করতে সিক্রেট কী দাও:');
-    if (entered === null) return;
-    if (entered !== _FB_SECRET) {
-      alert('❌ ভুল সিক্রেট কী! এডিট করা যাবে না।');
-      return;
-    }
     _fvEditOpenDo(n, id);
   }
 
@@ -9317,6 +9311,7 @@ window.PK = {
   autoFillWeeklyCreditFields: typeof autoFillWeeklyCreditFields !== 'undefined' ? autoFillWeeklyCreditFields : function(){}
 };
 window.PK._open = function(section) {
+  try {
   document.getElementById('paikkariOverlay').classList.add('pk-open');
   document.body.style.overflow = 'hidden';
   if (section === 'quickaction') {
@@ -9326,6 +9321,9 @@ window.PK._open = function(section) {
   else if (section === 'report')  {
     goToPage('result');
     if (typeof restoreLastSavedReport === 'function') restoreLastSavedReport();
+  }
+  } catch(e) {
+    alert('DEBUG PK._open এরর: ' + e.message + '\n' + e.stack);
   }
 };
 
