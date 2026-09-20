@@ -1461,6 +1461,15 @@
       100% { box-shadow: 0 2px 8px rgba(0,0,0,.10), 0 0 0 0   rgba(200,150,30,0);    }
     }
     .fv-card.lp-pulse { animation: lp-pulse .45s ease-out; }
+    /* ── এন্ট্রি ফর্মে ছবি আপলোড অংশ ── */
+    .ep-photo-field { display: flex; align-items: center; gap: 10px; margin: 4px 0 10px; }
+    .ep-photo-circle {
+      width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0; cursor: pointer;
+      background-color: #eae1c8; background-size: cover; background-position: center;
+      border: 1.5px dashed #a89880; display: flex; align-items: center; justify-content: center;
+      color: #8a7850;
+    }
+    .ep-photo-status { font-size: 11.5px; color: #7a6848; }
     .fv-card-top {
       position: relative;
       padding: 12px 14px 10px 14px;
@@ -1469,7 +1478,17 @@
     }
     .fv-card.lp-selected .fv-card-top { padding-left: 32px; }
     .fv-card-top:hover { background: rgba(0,0,0,.04); }
-    .fv-card-left { min-width: 0; padding-right: 105px; }
+    .fv-card-left { min-width: 0; padding-right: 105px; display: flex; align-items: center; gap: 10px; }
+    .fv-card-text { min-width: 0; flex: 1; }
+    /* ── পার্টি প্রোফাইল ছবি (রাউন্ড কর্নার চারকোণা অ্যাভাটার) ── */
+    .fv-avatar {
+      width: 40px; height: 56px; border-radius: 12px; flex-shrink: 0;
+      background-color: #d8cba8; background-size: cover; background-position: center;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 800; color: #6b5a34;
+      border: 1.5px solid #c8bc9e; overflow: hidden;
+      margin-left: -4px;
+    }
     .fv-name { font-size: 14px; font-weight: 800; color: #2c1e0a; }
     .fv-contact-line { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #7a6848; margin-top: 5px; line-height: 1.5; }
     .fv-contact-line svg { flex-shrink: 0; }
@@ -1551,7 +1570,7 @@
       color: var(--text, #222);
       background: var(--bg, #f5f0eb);
     }
-    .agg-td-sales   { color: var(--text, #222)   !important; font-weight: 600; }
+    .agg-td-stock   { color: var(--text, #222)   !important; font-weight: 600; }
     .agg-td-gross   { color: var(--text, #222)   !important; font-weight: 600; }
     .agg-td-net-pos { color: #5db872             !important; font-weight: 700; }
     .agg-td-net-neg { color: #c0392b             !important; font-weight: 700; }
@@ -2068,6 +2087,14 @@
       box-shadow: 0 2px 8px rgba(0,0,0,.08);
       position: relative;
     }
+    /* ── ডিটেইল হেডারে বড় গোল প্রোফাইল ছবি ── */
+    .fv-detail-avatar {
+      width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
+      background-color: #d8cba8; background-size: cover; background-position: center;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 800; color: #6b5a34;
+      border: 1.5px solid #c8bc9e;
+    }
     .fv-detail-name  { font-size: 15px; font-weight: 800; color: #2c1e0a; line-height: 1.2; }
     .fv-detail-meta  { font-size: 10px; color: #7a6040; margin-top: 3px; line-height: 1.5; }
     .fv-detail-del-btn {
@@ -2198,6 +2225,11 @@
       display: block;
     }
     .fv-mini-inp.amt { text-align: right; }
+    textarea.fv-mini-inp {
+      resize: none; overflow: hidden;
+      min-height: 32px; line-height: 1.35;
+      font-family: 'Noto Sans Bengali', sans-serif;
+    }
     .fv-mini-save-btn {
       font-family: 'Noto Sans Bengali', sans-serif;
       align-self: flex-end;
@@ -2262,6 +2294,9 @@
     .fv-excel tbody tr.tr-joma { background: rgba(26,92,53,.06); }
     .fv-excel tbody tr.tr-joma td { color: #1a5c35; }
     .fv-excel tbody tr.tr-joma:hover { background: rgba(26,92,53,.12); }
+    .fv-excel tbody tr.tr-merged { background: linear-gradient(90deg, rgba(155,44,44,.07) 0%, rgba(155,44,44,.07) 55%, rgba(26,92,53,.08) 55%, rgba(26,92,53,.08) 100%); }
+    .fv-excel tbody tr.tr-merged:hover { background: linear-gradient(90deg, rgba(155,44,44,.14) 0%, rgba(155,44,44,.14) 55%, rgba(26,92,53,.15) 55%, rgba(26,92,53,.15) 100%); }
+    .fv-excel tbody tr.tr-merged .td-joma { color: #1a5c35; font-weight: 700; }
     .fv-excel-foot {
       display: flex; justify-content: space-between; align-items: center;
       padding: 6px 12px;
@@ -2355,27 +2390,6 @@
     /* ══════════════════════════════════════
        এডিট মোড বাটন ও সেল স্টাইল
     ══════════════════════════════════════ */
-    .tbl-edit-mode-btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 32px; height: 32px; padding: 0; border-radius: 8px;
-      border: 1.5px solid rgba(184,144,42,.45);
-      background: rgba(184,144,42,.12);
-      color: #8a6010;
-      cursor: pointer;
-      transition: background .15s, border-color .15s, color .15s;
-      flex-shrink: 0;
-    }
-    .tbl-edit-mode-btn:hover {
-      background: rgba(184,144,42,.22);
-      border-color: rgba(184,144,42,.7);
-      color: #5a3a00;
-    }
-    .tbl-edit-mode-btn.active {
-      background: linear-gradient(135deg, #e0b84a, #c89820);
-      border-color: #b88010;
-      color: #1a0f06;
-      box-shadow: 0 2px 8px rgba(184,144,42,.35);
-    }
     /* এডিট মোডে সেল ইনপুট */
     .fv-excel.edit-mode tbody td.editable-cell {
       padding: 2px 3px;
@@ -2383,7 +2397,7 @@
     }
     .fv-excel.edit-mode tbody td.editable-cell input.cell-input {
       font-family: 'Noto Sans Bengali', sans-serif;
-      width: 100%; min-width: 60px;
+      width: 100%; min-width: 0; box-sizing: border-box;
       padding: 4px 6px;
       border: 1.5px solid rgba(184,144,42,.5);
       border-radius: 5px;
@@ -2398,6 +2412,28 @@
       box-shadow: 0 0 0 2px rgba(184,144,42,.18);
       background: #fff;
     }
+    /* এডিটে থাকা একটা সারি — বাকিগুলো থেকে আলাদা করে চেনা যায় */
+    .fv-excel tbody tr.row-editing td { background: rgba(255,247,222,.98) !important; }
+    .fv-excel tbody tr.row-editing { outline: 2px solid rgba(184,144,42,.75); outline-offset: -2px; }
+    /* ইনপুটের ডিফল্ট size=20 কলামকে ফুলিয়ে দেয় — width:0 + min-width:100% দিয়ে সেলের মাপই মানতে বাধ্য করা */
+    .fv-excel tbody tr.row-editing td.editable-cell { max-width: 0; overflow: hidden; }
+    .fv-excel tbody tr.row-editing input.cell-input { width: 0 !important; min-width: 100% !important; font-size: 10.5px; padding: 4px 3px; }
+    .fv-excel tbody tr.row-editing input.cell-input[type="date"] { min-width: 0; font-size: 9.5px; padding: 4px 1px; }
+    /* টেবিলের নিচে সেভ/বাতিল/ডিলিট অ্যাকশন-সারি */
+    .fv-row-actionbar {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      padding: 10px 12px; background: #fbf5e6;
+      border-top: 1px solid rgba(184,144,42,.35);
+    }
+    .fv-row-actionbar button {
+      font-family: 'Noto Sans Bengali', sans-serif;
+      border-radius: 9px; padding: 9px 14px; font-size: 12px; font-weight: 700;
+      cursor: pointer; border: 1.5px solid transparent; line-height: 1.1;
+    }
+    /* থিমের গ্লোবাল 'সব বাটনের লেখা সাদা !important' নিয়মকে হারাতে: উচ্চ specificity + !important */
+    body .fv-row-actionbar button.fv-ra-save   { background: #1f8a4c !important; color: #fff !important; -webkit-text-fill-color: #fff !important; border-color: #17703c !important; flex: 1 1 auto; }
+    body .fv-row-actionbar button.fv-ra-cancel { background: #fff !important;    color: #6a5a3a !important; -webkit-text-fill-color: #6a5a3a !important; border-color: rgba(184,144,42,.55) !important; }
+    body .fv-row-actionbar button.fv-ra-del    { background: #fdeaea !important; color: #b02a2a !important; -webkit-text-fill-color: #b02a2a !important; border-color: rgba(200,60,60,.55) !important; }
     /* এডিট মোডে row ডিলিট বাটন */
     .row-del-btn {
       display: inline-flex; align-items: center; justify-content: center;
@@ -2551,7 +2587,7 @@
     }
 
     /* ৪. সব text — header-বাদে, warm ink */
-    body :not(header):not(.hdr):not(.hdr *):not(.fv-excel thead):not(.fv-excel thead *) {
+    body :not(header):not(.hdr):not(.hdr *):not(.fv-excel thead):not(.fv-excel thead *):not(.fv-ra-save):not(.fv-ra-cancel):not(.fv-ra-del) {
       color: var(--dz-ink) !important;
       -webkit-text-fill-color: unset !important;
     }
@@ -3145,7 +3181,7 @@
     
     /* সব বাটনের লেখা সাদা — শুধুমাত্র সলিড/রঙিন ব্যাকগ্রাউন্ড বাটনে,
        আইকন/ট্রান্সপারেন্ট/ইউটিলিটি বাটন (যেমন তারিখ, ব্যাক, ক্লোজ, নটিফিকেশন) বাদে */
-    button:not(.notif-btn):not(.notif-clear-btn):not(.menu-btn):not(.cal-date-btn):not(.menu-close-btn):not(.ep-back-btn):not(.fv-back-btn):not(.fv-phone-btn):not(.fv-wa-btn):not(.fv-edit-btn):not(.fab-del-btn):not(.fv-edit-cancel-btn):not(.fv-detail-del-btn):not(.fv-foot-del-btn):not(.fv-lp-edit-btn):not(.fv-lp-del-btn):not(.fv-lp-cancel-btn):not(.tbl-edit-mode-btn):not(.row-del-btn):not(.btab-btn):not(.dl-tab):not(.fab-cancel-btn):not(.rc-card):not(.pk-close-btn) {
+    button:not(.notif-btn):not(.notif-clear-btn):not(.menu-btn):not(.cal-date-btn):not(.menu-close-btn):not(.ep-back-btn):not(.fv-back-btn):not(.fv-phone-btn):not(.fv-wa-btn):not(.fv-edit-btn):not(.fab-del-btn):not(.fv-edit-cancel-btn):not(.fv-detail-del-btn):not(.fv-foot-del-btn):not(.fv-lp-edit-btn):not(.fv-lp-del-btn):not(.fv-lp-cancel-btn):not(.row-del-btn):not(.btab-btn):not(.dl-tab):not(.fab-cancel-btn):not(.rc-card):not(.pk-close-btn):not(.fv-ra-save):not(.fv-ra-cancel):not(.fv-ra-del) {
       color: #fff !important;
       -webkit-text-fill-color: #fff !important;
     }
@@ -3189,9 +3225,7 @@
     body #pk-body .btn-save,
     body #pk-body .btn-go-calc,
     #fabricAddBtn,
-    #fabricFormWrap button[onclick="fabricSave()"],
-    #aggOvDelModeBtn,
-    #plDelModeBtn {
+    #fabricFormWrap button[onclick="fabricSave()"] {
       background: linear-gradient(135deg, #0d5c5f 0%, #0a4548 55%, #072e30 100%) !important;
       background-color: #0a4548 !important;
       color: #fff !important;
@@ -3209,19 +3243,29 @@
       -webkit-text-fill-color: #e8b840 !important;
     }
     
-    .tbl-edit-mode-btn.active {
-      background: rgba(10,69,72,.14) !important;
-      border-color: rgba(10,69,72,.45) !important;
-      color: #0a4548 !important;
-      -webkit-text-fill-color: #0a4548 !important;
-    }
-    /* ডিলিট মুড চালু থাকা অবস্থায় লালই থাকবে (JS দিয়ে override করা হয়) */
-    #aggOvDelModeBtn.del-mode-active,
-    #plDelModeBtn.del-mode-active {
+    /* ডিলিট মুডের 'সম্পন্ন' পট্টি — লাল, থিম override থেকে সুরক্ষিত */
+    #aggOvDelDoneBar,
+    #plDelDoneBar {
       background: #c0392b !important;
       border-color: #c0392b !important;
       color: #fff !important;
       -webkit-text-fill-color: #fff !important;
+    }
+    /* ডিলিট আইকনের কলাম — মুড বন্ধ থাকলে জায়গা নেয় না, চালু হলে শুরুতে দেখা যায় */
+    .agg-inline-table .agg-del-col { width:0; min-width:0; max-width:0; padding:0 !important; border:0 !important; overflow:hidden; }
+    #aggOvTableWrap.del-active .agg-inline-table .agg-del-col { width:34px; min-width:34px; max-width:34px; padding:0 2px !important; text-align:center; overflow:visible; }
+    /* লং-প্রেস এলাকায় টেক্সট সিলেকশন ও ব্রাউজারের কপি/শেয়ার মেনু বন্ধ */
+    .lp-zone, .lp-zone * {
+      -webkit-user-select: none !important;
+      user-select: none !important;
+      -webkit-touch-callout: none !important;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* ডিলিট মুডে টেবিল/চার্টে লালচে আভা — বোঝা যায় মুড চালু */
+    .lp-zone.del-active {
+      outline: 2px solid rgba(192,57,43,.55);
+      outline-offset: -2px;
+      border-radius: 10px;
     }
   </style>
 </head>
@@ -3327,11 +3371,11 @@
     </div>
     <div class="agg-full-card-body" id="aggFullCardBody">
       <div class="agg-full-stat">
-        <span class="agg-full-stat-label">In Flow</span>
+        <span class="agg-full-stat-label">In Stock</span>
         <span class="agg-full-stat-val" id="aggFullIn">—</span>
       </div>
       <div class="agg-full-stat">
-        <span class="agg-full-stat-label">Out Flow</span>
+        <span class="agg-full-stat-label">Out Stock</span>
         <span class="agg-full-stat-val" id="aggFullOut">—</span>
       </div>
     </div>
@@ -3736,10 +3780,10 @@
       letter-spacing:0.02em; border-left:2px solid #cc785c; padding-left:8px;">Aggregate Report</span>
     <span id="aggOvSub" style="font-size:11px; color:var(--text3,#888); margin-left:4px;"></span>
     <div style="flex:1;"></div>
-    <button type="button" id="aggOvDelModeBtn" onclick="aggOvToggleDelMode()" style="
-      border:1px solid #d8988a; background:#fff; color:#c0392b; border-radius:8px;
-      padding:6px 12px; font-size:11px; font-weight:700; cursor:pointer;
-      font-family:'Noto Sans Bengali',sans-serif; white-space:nowrap;">ডিলিট মুড</button>
+    <button type="button" id="aggOvDelDoneBar" onclick="aggOvToggleDelMode()" style="display:none;
+      border:none; background:#c0392b; color:#fff; border-radius:8px;
+      padding:7px 13px; font-size:11px; font-weight:700; cursor:pointer;
+      font-family:'Noto Sans Bengali',sans-serif; white-space:nowrap;">ডিলিট মুড চালু · সম্পন্ন</button>
   </div>
 
   <!-- বডি -->
@@ -3754,29 +3798,31 @@
     </div>
 
     <!-- টেবিল -->
-    <div id="aggOvTableWrap" style="display:none; overflow-x:auto;">
+    <div id="aggOvTableWrap" class="lp-zone" style="display:none; overflow-x:auto;">
       <table class="agg-inline-table">
         <thead>
           <tr>
+            <th class="agg-del-col"></th>
             <th>সপ্তাহ</th>
-            <th>Sales</th>
+            <th>In Stock</th>
+            <th>Out Stock</th>
             <th>Net Profit</th>
             <th>Gross Profit</th>
             <th>In Flow</th>
             <th>Out Flow</th>
-            <th></th>
           </tr>
         </thead>
         <tbody id="aggOvTbody"></tbody>
         <tfoot>
           <tr>
+            <td class="agg-del-col"></td>
             <td>মোট</td>
-            <td id="aggOvTSales">—</td>
+            <td id="aggOvTInStock">—</td>
+            <td id="aggOvTOutStock">—</td>
             <td id="aggOvTNet">—</td>
             <td id="aggOvTGross">—</td>
             <td id="aggOvTIn">—</td>
             <td id="aggOvTOut">—</td>
-            <td></td>
           </tr>
         </tfoot>
       </table>
@@ -4036,14 +4082,14 @@
     "><svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor"><path d="M16 7.5a.5.5 0 0 0-.5-.5H6.71l3.15-3.15a.5.5 0 0 0-.707-.707l-4 4a.5.5 0 0 0-.146.351V7.5a.5.5 0 0 0 .147.35l4 4a.5.5 0 0 0 .707-.707l-3.15-3.15h8.79a.5.5 0 0 0 .5-.5z"/></svg></button>
     <span style="font-family:var(--fab-serif,Georgia,serif); font-size:18px; font-weight:400; color:#141413; letter-spacing:-0.2px;">Profit &amp; Loss Trends</span>
     <div style="flex:1;"></div>
-    <button type="button" id="plDelModeBtn" onclick="plToggleDelMode()" style="
-      border:1px solid #d8988a; background:#fff; color:#c0392b; border-radius:8px;
-      padding:6px 12px; font-size:11px; font-weight:700; cursor:pointer;
-      font-family:'Noto Sans Bengali',sans-serif; white-space:nowrap;">ডিলিট মুড</button>
+    <button type="button" id="plDelDoneBar" onclick="plToggleDelMode()" style="display:none;
+      border:none; background:#c0392b; color:#fff; border-radius:8px;
+      padding:7px 13px; font-size:11px; font-weight:700; cursor:pointer;
+      font-family:'Noto Sans Bengali',sans-serif; white-space:nowrap;">ডিলিট মুড চালু · সম্পন্ন</button>
   </div>
   <!-- বডি -->
   <div style="flex:1; overflow-y:auto; padding:16px 14px; background:#faf9f5;" id="pk-body-plTrends">
-    <div style="background:#efe9de; border-radius:12px; border:1px solid #e6dfd8; padding:16px 14px 10px;">
+    <div id="plR-chartBox" class="lp-zone" style="background:#efe9de; border-radius:12px; border:1px solid #e6dfd8; padding:16px 14px 10px;">
       <div class="rev-bar-scroll" id="plR-revBarScroll" style="padding:4px 0 6px;">
         <svg id="plR-svgRevBar" style="display:block;overflow:visible;"></svg>
       </div>
@@ -4139,6 +4185,7 @@
 
   <!-- হেডার -->
   <div class="fv-detail-header">
+    <div class="fv-detail-avatar" id="fvDetailAvatar"></div>
     <div style="flex:1;min-width:0;">
       <div class="fv-detail-name" id="fvDetailName"></div>
       <div class="fv-detail-meta" id="fvDetailMeta"></div>
@@ -4147,6 +4194,7 @@
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
     </button>
   </div>
+
 
   <!-- বডি: Excel টেবিল + বকেয়া/জমা বাটন + মিনি ফর্ম -->
   <div class="fv-detail-body" id="fvDetailBody"></div>
@@ -4263,6 +4311,14 @@
       <button class="fv-edit-modal-close" onclick="fvEditClose()">✕</button>
     </div>
     <div class="fv-edit-modal-body">
+      <div class="ep-photo-field" style="margin-top:0;">
+        <label class="ep-photo-circle" id="fvEditPhotoPreview" for="fvEditPhotoInput">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </label>
+        <input type="file" accept="image/*" id="fvEditPhotoInput" style="display:none" onchange="fvEditPhotoPick(this)">
+        <input type="hidden" id="fvEditPhotoUrl" value="">
+        <span class="ep-photo-status" id="fvEditPhotoStatus">ছবি যুক্ত করুন (ঐচ্ছিক)</span>
+      </div>
       <div class="fv-edit-field">
         <fieldset><legend>নাম *</legend><input class="fv-edit-inp" id="fvEditName" type="text" placeholder=" " oninput="_fvEditFV(this)"></fieldset>
         <label class="fv-edit-label">নাম <span style="color:#e07070">*</span></label>
@@ -4593,6 +4649,87 @@
       await _fbDb.enableNetwork();
       console.log('Firebase network reconnected');
     } catch(e) { console.warn('Reconnect warn:', e); }
+  }
+
+  /* ══════════════════════════════════════
+     পার্টি প্রোফাইল ছবি — Firestore (base64)
+  ══════════════════════════════════════ */
+
+  /* ছবি রিসাইজ + কম্প্রেস করে JPEG dataURL বানাই (আপলোডের আগে) —
+     মোবাইল ক্যামেরার বড় ছবি (৫-১০MB) সরাসরি আপলোড না করে
+     ছোট (৩০০x৩০০) থাম্বনেইলে রূপান্তর করি, ডেটা খরচ কমাতে */
+  function _photoCompress(file, maxSize) {
+    maxSize = maxSize || 320;
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('ফাইল পড়া যায়নি'));
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('ছবি লোড হয়নি'));
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          if (w > h && w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; }
+          else if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /* dataURL সরাসরি রিটার্ন করি — Firebase Storage-এর বদলে
+     Firestore document-এই (photoUrl ফিল্ডে) base64 হিসেবে ছবি রাখা হয়।
+     Firestore এর 1 document = 1MB লিমিট এড়াতে সাইজ-চেক রাখা হলো
+     (৩২০px + 0.82 JPEG কোয়ালিটিতে সাধারণত ২০-৫০KB হয়, তাই ৩০০KB সেফ মার্জিন) */
+  async function _photoUpload(dataUrl, partyKey, partyId) {
+    const approxBytes = Math.ceil(dataUrl.length * 3 / 4);
+    if (approxBytes > 300 * 1024) {
+      throw new Error('ছবি অনেক বড় — আবার চেষ্টা করুন');
+    }
+    return dataUrl;
+  }
+
+  /* ম্যানুয়াল ছবি নির্বাচন → কম্প্রেস → আপলোড → ফর্মের hidden ইনপুটে বসাই,
+     এবং প্রিভিউ দেখাই। UI id নাম্বার (n) অনুযায়ী ধরে রাখি */
+  async function epPhotoPick(n, inputEl) {
+    const file = inputEl.files && inputEl.files[0];
+    if (!file) return;
+    const previewEl = document.getElementById('ep' + n + 'PhotoPreview');
+    const statusEl  = document.getElementById('ep' + n + 'PhotoStatus');
+    const hiddenEl  = document.getElementById('ep' + n + 'PhotoUrl');
+    if (statusEl) statusEl.textContent = 'আপলোড হচ্ছে…';
+    try {
+      const dataUrl = await _photoCompress(file, 320);
+      if (previewEl) previewEl.style.backgroundImage = 'url(' + dataUrl + ')';
+      const tempId = 'tmp' + Date.now();
+      /* এডিট-বক্সে (n === 'Pe') EP_META নেই — তখন _detailN থেকে আসল key নিই */
+      const folderKey = (EP_META[n] && EP_META[n].key)
+        ? EP_META[n].key
+        : (typeof _detailN !== 'undefined' && EP_META[_detailN] ? EP_META[_detailN].key : 'party_misc');
+      const url = await _photoUpload(dataUrl, folderKey, tempId);
+      if (hiddenEl) hiddenEl.value = url;
+      if (statusEl) statusEl.textContent = 'ছবি যুক্ত হয়েছে ✓';
+    } catch (err) {
+      console.error('ছবি আপলোড সমস্যা:', err);
+      if (statusEl) statusEl.textContent = 'আপলোড ব্যর্থ — আবার চেষ্টা করুন';
+    }
+  }
+
+  /* ফর্মে ছবি আপলোড অংশের HTML */
+  function _epPhotoField(n) {
+    return '<div class="ep-photo-field">'
+      + '<label class="ep-photo-circle" id="ep' + n + 'PhotoPreview" for="ep' + n + 'PhotoInput">'
+      + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>'
+      + '</label>'
+      + '<input type="file" accept="image/*" id="ep' + n + 'PhotoInput" style="display:none" onchange="epPhotoPick(' + n + ',this)">'
+      + '<input type="hidden" id="ep' + n + 'PhotoUrl" value="">'
+      + '<span class="ep-photo-status" id="ep' + n + 'PhotoStatus">ছবি যুক্ত করুন (ঐচ্ছিক)</span>'
+      + '</div>';
   }
 
   /* ══════════════════════════════════════
@@ -5162,6 +5299,15 @@
     }
   };
 
+  /* ── পার্টির প্রোফাইল ছবি বা নামের আদ্যক্ষর দেখাই (অ্যাভাটার) ── */
+  function _epAvatarHtml(item) {
+    if (item.photoUrl) {
+      return '<div class="fv-avatar" style="background-image:url(\'' + item.photoUrl + '\')"></div>';
+    }
+    var initial = (item.name || '?').trim().charAt(0);
+    return '<div class="fv-avatar">' + (initial || '?') + '</div>';
+  }
+
   /* ── shared form helpers ── */
   function _epField(id, legend, type, cls, extra) {
     extra = extra || '';
@@ -5213,6 +5359,7 @@
   /* ── গ্রাহক ফর্ম HTML ── */
   function _epCustomerForm(n) {
     return '<div class="ep-form-box">'
+      + _epPhotoField(n)
       + '<div class="ep-row">'
       + _epField('ep'+n+'Name','নাম','text','')
       + _epField('ep'+n+'Addr','ঠিকানা','text','')
@@ -5239,6 +5386,7 @@
   /* ── সরবরাহকারী ফর্ম HTML ── */
   function _epSupplierForm(n) {
     return '<div class="ep-form-box">'
+      + _epPhotoField(n)
       + '<div class="ep-row">'
       + '<div class="ep-field"><fieldset><legend>নাম *</legend>'
       + '<input class="ep-inp" id="ep'+n+'Name" type="text" placeholder=" " oninput="_epFV(this)"></fieldset>'
@@ -5275,18 +5423,22 @@
     const mobRaw = document.getElementById(`ep${n}Mob`)?.value.trim()  || '';
     const mob    = mobRaw ? '+88' + mobRaw : '';
     const note  = document.getElementById(`ep${n}Note`)?.value.trim() || '';
+    const photoUrl = document.getElementById(`ep${n}PhotoUrl`)?.value.trim() || '';
     const dateEl = document.getElementById(`ep${n}Date`);
     const date  = (dateEl && dateEl.value) ? dateEl.value : new Date().toISOString();
     if (!name && !bill) { document.getElementById(`ep${n}Name`).focus(); return; }
     const baki = Math.max(0, bill - joma);
     const key  = EP_META[n].key;
     const list = _lsGet(key);
-    list.push({ id: Date.now(), name, memo, goj, bill, joma, baki, addr, mob, note, date });
+    const newItem = { id: Date.now(), name, memo, goj, bill, joma, baki, addr, mob, note, date };
+    if (photoUrl) newItem.photoUrl = photoUrl;
+    list.push(newItem);
     _lsSet(key, list);
     /* ফর্ম রিসেট */
     [`ep${n}Name`,`ep${n}Memo`,`ep${n}Goj`,`ep${n}Bill`,`ep${n}Joma`,`ep${n}Addr`,`ep${n}Mob`,`ep${n}Note`]
       .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     if (dateEl) { dateEl.value = ''; dateEl.type = 'text'; dateEl.placeholder = ' '; }
+    (function(){ const pu=document.getElementById(`ep${n}PhotoUrl`); if(pu) pu.value=''; const pp=document.getElementById(`ep${n}PhotoPreview`); if(pp) pp.style.backgroundImage=''; const ps=document.getElementById(`ep${n}PhotoStatus`); if(ps) ps.textContent='ছবি যুক্ত করুন (ঐচ্ছিক)'; })();
     epRender(n);
     _fbAutoSync();
     /* ইনলাইন ফর্ম বন্ধ করি ও লিস্ট উপরে স্ক্রল */
@@ -5304,17 +5456,21 @@
     const mob     = mobRaw ? '+88' + mobRaw : '';
     const addr    = document.getElementById(`ep${n}Addr`)?.value.trim() || '';
     const note    = document.getElementById(`ep${n}Note`)?.value.trim() || '';
+    const photoUrl = document.getElementById(`ep${n}PhotoUrl`)?.value.trim() || '';
     const dateEl  = document.getElementById(`ep${n}Date`);
     const date    = (dateEl && dateEl.value) ? dateEl.value : new Date().toISOString();
     if (!name) { document.getElementById(`ep${n}Name`).focus(); return; }
     const netBaki = Math.max(0, baki - joma);
     const key  = EP_META[n].key;
     const list = _lsGet(key);
-    list.push({ id: Date.now(), name, memo, goj, baki: netBaki, joma, initPawna: baki, mob, addr, note, date });
+    const newItem = { id: Date.now(), name, memo, goj, baki: netBaki, joma, initPawna: baki, mob, addr, note, date };
+    if (photoUrl) newItem.photoUrl = photoUrl;
+    list.push(newItem);
     _lsSet(key, list);
     [`ep${n}Name`,`ep${n}Memo`,`ep${n}Goj`,`ep${n}Baki`,`ep${n}Joma`,`ep${n}Mob`,`ep${n}Addr`,`ep${n}Note`]
       .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     if (dateEl) { dateEl.value = ''; dateEl.type = 'text'; dateEl.placeholder = ' '; }
+    (function(){ const pu=document.getElementById(`ep${n}PhotoUrl`); if(pu) pu.value=''; const pp=document.getElementById(`ep${n}PhotoPreview`); if(pp) pp.style.backgroundImage=''; const ps=document.getElementById(`ep${n}PhotoStatus`); if(ps) ps.textContent='ছবি যুক্ত করুন (ঐচ্ছিক)'; })();
     epRender(n);
     _fbAutoSync();
     /* ইনলাইন ফর্ম বন্ধ করি ও লিস্ট উপরে স্ক্রল */
@@ -5585,9 +5741,12 @@
         + '<div class="fv-card-top" onclick="_fvCardTap(' + n + ',' + item.id + ',event)" onpointerdown="_fvCardLpDown(event,this,' + n + ',' + item.id + ')">'
         +   '<div class="fv-drag-handle" onpointerdown="_dragHandleDown(event,' + item.id + ')">' + DRAG_HANDLE_SVG + '</div>'
         +   '<div class="fv-card-left">'
-        +     '<div class="fv-name">' + (item.name || '—') + '</div>'
-        +     (item.addr ? '<div class="fv-contact-line">' + LOC_SVG + ' ' + item.addr + '</div>' : '')
-        +     (hasMob    ? '<div class="fv-contact-line">' + TEL_SVG + ' ' + mob + '</div>' : '')
+        +     _epAvatarHtml(item)
+        +     '<div class="fv-card-text">'
+        +       '<div class="fv-name">' + (item.name || '—') + '</div>'
+        +       (item.addr ? '<div class="fv-contact-line">' + LOC_SVG + ' ' + item.addr + '</div>' : '')
+        +       (hasMob    ? '<div class="fv-contact-line">' + TEL_SVG + ' ' + mob + '</div>' : '')
+        +     '</div>'
         +   '</div>'
         +   '<div class="fv-top-actions" onclick="event.stopPropagation()">'
         +     '<div class="fv-top-btns-row">'
@@ -5877,6 +6036,18 @@
     if (item.addr) metaParts.push(item.addr);
     if (hasMob)   metaParts.push(mob);
     document.getElementById('fvDetailMeta').textContent = metaParts.join(' · ');
+    /* হেডারে বড় প্রোফাইল ছবি / আদ্যক্ষর */
+    (function(){
+      var av = document.getElementById('fvDetailAvatar');
+      if (!av) return;
+      if (item.photoUrl) {
+        av.style.backgroundImage = "url('" + item.photoUrl + "')";
+        av.textContent = '';
+      } else {
+        av.style.backgroundImage = '';
+        av.textContent = (item.name || '?').trim().charAt(0) || '?';
+      }
+    })();
 
     /* Excel টেবিল কন্টেন্ট */
     var innerContent = '';
@@ -5898,22 +6069,55 @@
         else if (h.type === 'joma')
           txns.push({ date: h.date, memo: h.memo, type: 'joma', amt: h.joma || 0, note: h.note || '', goj: '', _src: 'hist', _histIdx: hi });
       }
+      /* ── একই (non-empty) মেমোর bill + joma একসাথে merge করি এক row-এ দেখানোর জন্য ──
+         edit-mode এ আবার আলাদা করে ভেঙে দেখানো হবে (_mergeJoma রেফারেন্স ধরে) */
+      var mtxns = [];
+      for (var mi = 0; mi < txns.length; mi++) {
+        var mt = txns[mi];
+        if (mt.type === 'bill' && mt.memo && String(mt.memo).trim() !== '') {
+          var mate = null, mateIdx = -1;
+          for (var mj = 0; mj < txns.length; mj++) {
+            if (mj === mi) continue;
+            var cand = txns[mj];
+            if (cand.type === 'joma' && !cand._merged && cand.memo && String(cand.memo).trim() === String(mt.memo).trim()) {
+              mate = cand; mateIdx = mj; break;
+            }
+          }
+          if (mate) {
+            mt._mergeJoma = mate; /* joma অংশের রেফারেন্স রেখে দিলাম, এডিট-মোডে ব্যবহার হবে */
+            txns[mateIdx]._merged = true;
+            mtxns.push(mt);
+            continue;
+          }
+        }
+        if (mt._merged) continue;
+        mtxns.push(mt);
+      }
+      txns = mtxns;
       var rows = '';
       var running = 0;
       for (var ti = 0; ti < txns.length; ti++) {
         var t = txns[ti];
         var srcAttr = ' data-src="' + t._src + '" data-hist-idx="' + t._histIdx + '" data-txn-type="' + t.type + '"'
           + ' data-raw-date="' + (t.date||'') + '" data-raw-memo="' + _esc(t.memo||'') + '" data-raw-note="' + _esc(t.note||'') + '" data-raw-goj="' + _esc(t.goj||'') + '" data-raw-amt="' + (t.amt||0) + '"';
+        if (t._mergeJoma) {
+          srcAttr += ' data-merge-src="' + t._mergeJoma._src + '" data-merge-hist-idx="' + t._mergeJoma._histIdx + '"'
+            + ' data-merge-date="' + (t._mergeJoma.date||'') + '" data-merge-memo="' + _esc(t._mergeJoma.memo||'') + '" data-merge-note="' + _esc(t._mergeJoma.note||'') + '" data-merge-amt="' + (t._mergeJoma.amt||0) + '"';
+        }
         if (t.type === 'bill') {
           running += (t.amt || 0);
-          rows += '<tr class="tr-bill"' + srcAttr + '>'
+          var jomaAmt = t._mergeJoma ? (t._mergeJoma.amt || 0) : 0;
+          if (jomaAmt) running = Math.max(0, running - jomaAmt);
+          var jomaCell = t._mergeJoma ? fmtAmt(jomaAmt) : '—';
+          var noteCell = t.note || (t._mergeJoma && t._mergeJoma.note) || '—';
+          rows += '<tr class="tr-bill' + (t._mergeJoma ? ' tr-merged' : '') + '"' + srcAttr + '>'
             + '<td data-field="date">' + fmtDate(t.date) + '</td>'
             + '<td class="td-label" data-field="memo">' + (t.memo || '—') + '</td>'
             + '<td class="td-num" data-field="amt">' + fmtAmt(t.amt) + '</td>'
-            + '<td data-field="readonly">—</td>'
+            + '<td class="td-num td-joma" data-field="' + (t._mergeJoma ? 'merge-amt' : 'readonly') + '">' + jomaCell + '</td>'
             + '<td class="td-num td-baki" data-field="readonly">' + fmtAmt(running) + '</td>'
             + '<td data-field="goj">' + (t.goj || '—') + '</td>'
-            + '<td data-field="note">' + (t.note || '—') + '</td>'
+            + '<td data-field="note">' + noteCell + '</td>'
             + '</tr>';
         } else {
           running = Math.max(0, running - (t.amt || 0));
@@ -5954,22 +6158,55 @@
       }
       /* তারিখ অনুযায়ী sort — _histIdx অপরিবর্তিত থাকে */
       txns.sort(function(a, b) { var da = a.date||'', db = b.date||''; return da < db ? -1 : da > db ? 1 : 0; });
+      /* ── একই (non-empty) মেমোর pawna + joma একসাথে merge করি এক row-এ দেখানোর জন্য ──
+         edit-mode এ আবার আলাদা করে ভেঙে দেখানো হবে (_mergeJoma রেফারেন্স ধরে) */
+      var mtxns = [];
+      for (var mi = 0; mi < txns.length; mi++) {
+        var mt = txns[mi];
+        if (mt.type === 'pawna' && mt.memo && String(mt.memo).trim() !== '') {
+          var mate = null, mateIdx = -1;
+          for (var mj = 0; mj < txns.length; mj++) {
+            if (mj === mi) continue;
+            var cand = txns[mj];
+            if (cand.type === 'joma' && !cand._merged && cand.memo && String(cand.memo).trim() === String(mt.memo).trim()) {
+              mate = cand; mateIdx = mj; break;
+            }
+          }
+          if (mate) {
+            mt._mergeJoma = mate;
+            txns[mateIdx]._merged = true;
+            mtxns.push(mt);
+            continue;
+          }
+        }
+        if (mt._merged) continue;
+        mtxns.push(mt);
+      }
+      txns = mtxns;
       var rows = '';
       var running = 0;
       for (var ti = 0; ti < txns.length; ti++) {
         var t = txns[ti];
         var srcAttr = ' data-src="' + t._src + '" data-hist-idx="' + t._histIdx + '" data-txn-type="' + t.type + '"'
           + ' data-raw-date="' + (t.date||'') + '" data-raw-memo="' + _esc(t.memo||'') + '" data-raw-note="' + _esc(t.note||'') + '" data-raw-goj="' + _esc(t.goj||'') + '" data-raw-amt="' + (t.amt||0) + '"';
+        if (t._mergeJoma) {
+          srcAttr += ' data-merge-src="' + t._mergeJoma._src + '" data-merge-hist-idx="' + t._mergeJoma._histIdx + '"'
+            + ' data-merge-date="' + (t._mergeJoma.date||'') + '" data-merge-memo="' + _esc(t._mergeJoma.memo||'') + '" data-merge-note="' + _esc(t._mergeJoma.note||'') + '" data-merge-amt="' + (t._mergeJoma.amt||0) + '"';
+        }
         if (t.type === 'pawna') {
           running += (t.amt || 0);
-          rows += '<tr class="tr-bill"' + srcAttr + '>'
+          var jomaAmt = t._mergeJoma ? (t._mergeJoma.amt || 0) : 0;
+          if (jomaAmt) running = Math.max(0, running - jomaAmt);
+          var jomaCell = t._mergeJoma ? fmtAmt(jomaAmt) : '—';
+          var noteCell = t.note || (t._mergeJoma && t._mergeJoma.note) || '—';
+          rows += '<tr class="tr-bill' + (t._mergeJoma ? ' tr-merged' : '') + '"' + srcAttr + '>'
             + '<td data-field="date">' + fmtDate(t.date) + '</td>'
             + '<td class="td-label" data-field="memo">' + (t.memo || '—') + '</td>'
             + '<td class="td-num" data-field="amt">' + fmtAmt(t.amt) + '</td>'
-            + '<td data-field="readonly">—</td>'
+            + '<td class="td-num td-joma" data-field="' + (t._mergeJoma ? 'merge-amt' : 'readonly') + '">' + jomaCell + '</td>'
             + '<td class="td-num td-baki" data-field="readonly">' + fmtAmt(running) + '</td>'
             + '<td data-field="goj">' + (t.goj || '—') + '</td>'
-            + '<td data-field="note">' + (t.note || '—') + '</td>'
+            + '<td data-field="note">' + noteCell + '</td>'
             + '</tr>';
         } else {
           running = Math.max(0, running - (t.amt || 0));
@@ -5998,9 +6235,6 @@
       + '<div class="fv-excel-wrap" style="margin-bottom:0;">' + innerContent + '</div>'
       + '<div class="fv-excel-foot" id="fvDetailFoot-' + itemId + '">'
       + '<div><span class="fv-excel-foot-lbl">' + (isCustomer ? 'বর্তমান পাওনা/প্রাপ্য' : 'বর্তমান বকেয়া/প্রদেয়') + '&nbsp;&nbsp;</span><span class="fv-excel-foot-val">' + fmtAmt(_detailRunning) + '</span></div>'
-      + '<button class="tbl-edit-mode-btn" id="fvDetailEditBtn-' + itemId + '" onclick="fvDetailToggleEditMode(' + n + ',' + itemId + ',this)">'
-      +   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
-      + '</button>'
       + '</div>'
       + '<div class="fv-entry-btns">'
       +   '<button class="fv-joma-btn" id="djbtn-' + itemId + '" onclick="fvToggleMiniDetail(\'' + itemId + '\',\'joma\',event)">'
@@ -6025,7 +6259,8 @@
         +   '<div class="fv-mini-field"><fieldset><legend>পাওনা</legend><input class="fv-mini-inp amt" id="dmb-bill-' + itemId + '" type="number" inputmode="decimal" placeholder=" " oninput="_fvMiniFV(this)"></fieldset><label class="fv-mini-label">পাওনা</label></div>'
         + '</div>'
         + '<div class="fv-mini-row">'
-        +   '<div class="fv-mini-field"><fieldset><legend>মন্তব্য</legend><input class="fv-mini-inp" id="dmb-note-' + itemId + '" type="text" placeholder=" " oninput="_fvMiniFV(this)"></fieldset><label class="fv-mini-label">মন্তব্য</label></div>'
+        +   '<div class="fv-mini-field" style="flex:0.85;"><fieldset><legend>জমা (ঐচ্ছিক)</legend><input class="fv-mini-inp amt" id="dmb-joma-' + itemId + '" type="number" inputmode="decimal" placeholder=" " oninput="_fvMiniFV(this)"></fieldset><label class="fv-mini-label">জমা (ঐচ্ছিক)</label></div>'
+        +   '<div class="fv-mini-field" style="flex:1.4;"><fieldset><legend>মন্তব্য</legend><textarea class="fv-mini-inp" id="dmb-note-' + itemId + '" rows="1" placeholder=" " oninput="_fvMiniNoteGrow(this)"></textarea></fieldset><label class="fv-mini-label">মন্তব্য</label></div>'
         + '</div>'
         + '<button class="fv-mini-save-btn" onclick="fvDetailSaveBokeyoa()">'
         +   '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> সেভ করুন'
@@ -6057,7 +6292,8 @@
         +   '<div class="fv-mini-field"><fieldset><legend>বকেয়া</legend><input class="fv-mini-inp amt" id="dmb-baki-' + itemId + '" type="number" inputmode="decimal" placeholder=" " oninput="_fvMiniFV(this)"></fieldset><label class="fv-mini-label">বকেয়া</label></div>'
         + '</div>'
         + '<div class="fv-mini-row">'
-        +   '<div class="fv-mini-field"><fieldset><legend>মন্তব্য</legend><input class="fv-mini-inp" id="dmb-note-' + itemId + '" type="text" placeholder=" " oninput="_fvMiniFV(this)"></fieldset><label class="fv-mini-label">মন্তব্য</label></div>'
+        +   '<div class="fv-mini-field" style="flex:0.85;"><fieldset><legend>জমা (ঐচ্ছিক)</legend><input class="fv-mini-inp amt" id="dmb-joma-' + itemId + '" type="number" inputmode="decimal" placeholder=" " oninput="_fvMiniFV(this)"></fieldset><label class="fv-mini-label">জমা (ঐচ্ছিক)</label></div>'
+        +   '<div class="fv-mini-field" style="flex:1.4;"><fieldset><legend>মন্তব্য</legend><textarea class="fv-mini-inp" id="dmb-note-' + itemId + '" rows="1" placeholder=" " oninput="_fvMiniNoteGrow(this)"></textarea></fieldset><label class="fv-mini-label">মন্তব্য</label></div>'
         + '</div>'
         + '<button class="fv-mini-save-btn" onclick="fvDetailSaveBokeyoaSupplier()">'
         +   '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> সেভ করুন'
@@ -6085,6 +6321,9 @@
     _scr.classList.remove('open');
     _bdy.innerHTML = bodyHtml;
     void _scr.offsetHeight; /* force reflow — Bengali font layout নিশ্চিত */
+    /* সারিতে লং-প্রেস করলে ওই সারি এডিট/ডিলিট মোডে যাবে (পেন্সিল বোতামের বদলে) */
+    _detailEditActive = false;
+    if (typeof fvBindRowLongPress === 'function') fvBindRowLongPress(n, itemId);
 
     requestAnimationFrame(function() {
       _scr.classList.add('open');
@@ -6152,8 +6391,13 @@
     var goj   = (document.getElementById('dmb-goj-'   + parentId)?.value || '').trim();
     var bill  = parseFloat(document.getElementById('dmb-bill-'  + parentId)?.value) || 0;
     var note  = (document.getElementById('dmb-note-'  + parentId)?.value || '').trim();
+    var joma  = parseFloat(document.getElementById('dmb-joma-'  + parentId)?.value) || 0;
     if (!list[idx].history) list[idx].history = [];
     list[idx].history.push({ type:'bokeyoa', memo, date, bill, baki: bill, note, goj, ts: Date.now() });
+    /* একই মেমোতে জমা দেওয়া থাকলে আলাদা joma এন্ট্রিও যোগ করি */
+    if (joma > 0) {
+      list[idx].history.push({ type:'joma', memo, date, joma, note, ts: Date.now() + 1 });
+    }
     /* history থেকে সম্পূর্ণ recalculate — কোনো accumulation নেই */
     var _tb = list[idx].bill || 0;
     var _tj = list[idx].joma || 0;
@@ -6207,8 +6451,13 @@
     var goj   = (document.getElementById('dmb-goj-'  + parentId)?.value || '').trim();
     var pawna = parseFloat(document.getElementById('dmb-baki-' + parentId)?.value) || 0;
     var note  = (document.getElementById('dmb-note-' + parentId)?.value || '').trim();
+    var joma  = parseFloat(document.getElementById('dmb-joma-' + parentId)?.value) || 0;
     if (!list[idx].history) list[idx].history = [];
     list[idx].history.push({ type:'bokeyoa', memo, date, baki: pawna, note, goj, ts: Date.now() });
+    /* একই মেমোতে জমা দেওয়া থাকলে আলাদা joma এন্ট্রিও যোগ করি */
+    if (joma > 0) {
+      list[idx].history.push({ type:'joma', memo, date, joma, note, ts: Date.now() + 1 });
+    }
     /* history থেকে সম্পূর্ণ recalculate
        initPawna = মূল পাওনা (save-এর সময় store করা), না থাকলে baki+joma দিয়ে অনুমান */
     var _initP = (list[idx].initPawna !== undefined) ? list[idx].initPawna : (list[idx].baki || 0) + (list[idx].joma || 0);
@@ -6277,6 +6526,15 @@
     /* +880 প্রিফিক্স থাকলে বাদ দিয়ে শুধু নম্বর দেখাই */
     const storedMob = item.mob || '';
     document.getElementById('fvEditMob').value  = storedMob.startsWith('+88') ? storedMob.slice(3) : storedMob;
+    /* প্রোফাইল ছবি প্রিভিউ */
+    (function(){
+      const pu = document.getElementById('fvEditPhotoUrl');
+      const pp = document.getElementById('fvEditPhotoPreview');
+      const ps = document.getElementById('fvEditPhotoStatus');
+      if (pu) pu.value = item.photoUrl || '';
+      if (pp) pp.style.backgroundImage = item.photoUrl ? "url('" + item.photoUrl + "')" : '';
+      if (ps) ps.textContent = item.photoUrl ? 'বর্তমান ছবি — বদলাতে ট্যাপ করুন' : 'ছবি যুক্ত করুন (ঐচ্ছিক)';
+    })();
     /* has-val আপডেট */
     ['fvEditName','fvEditAddr'].forEach(function(id2){
       var el = document.getElementById(id2);
@@ -6295,12 +6553,34 @@
     _editN = 0; _editId = 0;
   }
 
+  /* ── এডিট মোডালে ছবি বাছাই → কম্প্রেস → আপলোড ── */
+  async function fvEditPhotoPick(inputEl) {
+    const file = inputEl.files && inputEl.files[0];
+    if (!file) return;
+    const previewEl = document.getElementById('fvEditPhotoPreview');
+    const statusEl  = document.getElementById('fvEditPhotoStatus');
+    const hiddenEl  = document.getElementById('fvEditPhotoUrl');
+    if (statusEl) statusEl.textContent = 'আপলোড হচ্ছে…';
+    try {
+      const dataUrl = await _photoCompress(file, 320);
+      if (previewEl) previewEl.style.backgroundImage = 'url(' + dataUrl + ')';
+      const folderKey = (EP_META[_editN] && EP_META[_editN].key) ? EP_META[_editN].key : 'party_misc';
+      const url = await _photoUpload(dataUrl, folderKey, _editId || ('tmp' + Date.now()));
+      if (hiddenEl) hiddenEl.value = url;
+      if (statusEl) statusEl.textContent = 'ছবি যুক্ত হয়েছে ✓';
+    } catch (err) {
+      console.error('ছবি আপলোড সমস্যা:', err);
+      if (statusEl) statusEl.textContent = 'আপলোড ব্যর্থ — আবার চেষ্টা করুন';
+    }
+  }
+
   function fvEditSave() {
     const name = document.getElementById('fvEditName').value.trim();
     if (!name) { document.getElementById('fvEditName').focus(); return; }
     const addr = document.getElementById('fvEditAddr').value.trim();
     const mobRaw = document.getElementById('fvEditMob').value.trim();
     const mob  = mobRaw ? '+88' + mobRaw : '';
+    const photoUrl = document.getElementById('fvEditPhotoUrl').value.trim();
     const key  = EP_META[_editN].key;
     const list = _lsGet(key);
     const idx  = list.findIndex(x => x.id === _editId);
@@ -6308,6 +6588,7 @@
     list[idx].name = name;
     list[idx].addr = addr;
     list[idx].mob  = mob;
+    if (photoUrl) list[idx].photoUrl = photoUrl;
     _lsSet(key, list);
     /* fvEditClose এর আগে n সংরক্ষণ করি — close করলে _editN শূন্য হয়ে যায় */
     const savedN  = _editN;
@@ -6331,6 +6612,12 @@
   function _epFV(inp)     { _setFV(inp); }
   function _fvEditFV(inp) { _setFV(inp); }
   function _fvMiniFV(inp) { _setFV(inp); }
+  /* মন্তব্য textarea — টাইপ করার সাথে সাথে height অটো-বাড়ে */
+  function _fvMiniNoteGrow(inp) {
+    _fvMiniFV(inp);
+    inp.style.height = 'auto';
+    inp.style.height = inp.scrollHeight + 'px';
+  }
 
   [1,2,3,4].forEach(n => {
     const key   = EP_META[n].key;
@@ -6598,188 +6885,255 @@
   }
 
   /* ══════════════════════════════════════════
-     DETAIL SCREEN — ইনলাইন এডিট মোড
+     DETAIL SCREEN — সারি-ভিত্তিক এডিট/ডিলিট মোড (লং-প্রেসে)
+     কোনো সারিতে ~০.৬ সেকেন্ড চেপে ধরলে সিক্রেট কী চেয়ে ওই সারিই এডিট+ডিলিট মোডে যায়।
+     একসাথে একটাই সারি এডিটে থাকতে পারে।
   ══════════════════════════════════════════ */
-  var _detailEditActive = false;
+  var _detailEditActive = false;   /* এখন কোনো সারি এডিটে আছে কিনা */
 
-  function fvDetailToggleEditMode(n, itemId, btn) {
-    /* এডিট চালু করতে সিক্রেট কী লাগবে, বন্ধ করতে লাগবে না */
-    if (!_detailEditActive) {
-      const entered = prompt('টেবিল এডিট করতে সিক্রেট কী দাও:');
-      if (entered === null) return;
-      if (entered !== _FB_SECRET) {
-        alert('❌ ভুল সিক্রেট কী! এডিট করা যাবে না।');
-        return;
+  /* বকেয়া/জমা পুনর্গণনা — আগের সেভ লজিকের হুবহু কপি (কাস্টমার ও সরবরাহকারী) */
+  function _fvRecalcBaki(item, isCustomer) {
+    if (isCustomer) {
+      var totalBill = item.bill || 0;
+      var totalJoma = item.joma || 0;
+      (item.history || []).forEach(function(h) {
+        if (h.type === 'bokeyoa') totalBill += (h.bill || 0);
+        else if (h.type === 'joma') totalJoma += (h.joma || 0);
+      });
+      item.baki = Math.max(0, totalBill - totalJoma);
+    } else {
+      if ((item.history || []).length === 0) {
+        /* history নেই — শুধু init entry আছে, item.baki ইতিমধ্যে সেট হয়েছে */
+      } else {
+        var _initPE = (item.initPawna !== undefined) ? item.initPawna : (item.baki || 0) + (item.joma || 0);
+        var _initJE = item.joma || 0;
+        var totalPawna = _initPE;
+        var totalJomaSup = _initJE;
+        (item.history || []).forEach(function(h) {
+          if (h.type === 'bokeyoa') totalPawna   += (h.baki || 0);
+          else if (h.type === 'joma') totalJomaSup += (h.joma || 0);
+        });
+        item.baki = Math.max(0, totalPawna - totalJomaSup);
       }
     }
-    _fvDetailToggleDo(n, itemId, btn);
   }
 
-  function _fvDetailToggleDo(n, itemId, btn) {
+  /* মার্জড (পাওনা+জমা একসাথে) সারিকে ভেঙে দুই সারি করা — শুধু এই একটা সারির জন্য */
+  function _fvSplitMergedRow(tr) {
+    if (!tr.hasAttribute('data-merge-src')) return [tr];
+    var jomaTr = document.createElement('tr');
+    jomaTr.className = 'tr-joma';
+    jomaTr.setAttribute('data-src', tr.getAttribute('data-merge-src'));
+    jomaTr.setAttribute('data-hist-idx', tr.getAttribute('data-merge-hist-idx'));
+    jomaTr.setAttribute('data-txn-type', 'joma');
+    jomaTr.setAttribute('data-raw-date', tr.getAttribute('data-merge-date') || '');
+    jomaTr.setAttribute('data-raw-memo', tr.getAttribute('data-merge-memo') || '');
+    jomaTr.setAttribute('data-raw-note', tr.getAttribute('data-merge-note') || '');
+    jomaTr.setAttribute('data-raw-goj', '');
+    jomaTr.setAttribute('data-raw-amt', tr.getAttribute('data-merge-amt') || '0');
+    jomaTr.innerHTML =
+      '<td data-field="date">' + fmtDate(tr.getAttribute('data-merge-date')) + '</td>'
+      + '<td class="td-label" data-field="memo">' + (tr.getAttribute('data-merge-memo') || '—') + '</td>'
+      + '<td data-field="readonly">—</td>'
+      + '<td class="td-num td-joma" data-field="amt">' + fmtAmt(parseFloat(tr.getAttribute('data-merge-amt'))||0) + '</td>'
+      + '<td class="td-num td-baki" data-field="readonly">' + (tr.querySelector('.td-baki') ? tr.querySelector('.td-baki').textContent : '') + '</td>'
+      + '<td data-field="readonly">—</td>'
+      + '<td data-field="note">' + (tr.getAttribute('data-merge-note') || '—') + '</td>';
+    tr.parentNode.insertBefore(jomaTr, tr.nextSibling);
+    tr.removeAttribute('data-merge-src'); tr.removeAttribute('data-merge-hist-idx');
+    tr.removeAttribute('data-merge-date'); tr.removeAttribute('data-merge-memo');
+    tr.removeAttribute('data-merge-note'); tr.removeAttribute('data-merge-amt');
+    tr.classList.remove('tr-merged');
+    var jomaTd = tr.querySelector('td[data-field="merge-amt"]');
+    if (jomaTd) { jomaTd.setAttribute('data-field', 'readonly'); jomaTd.textContent = '—'; }
+    return [tr, jomaTr];
+  }
+
+  /* একটা সারিকে ইনপুটে রূপান্তর + শেষে সেভ/ডিলিট/বাতিল বোতাম */
+  function _fvMakeRowEditable(tr, n, itemId) {
+    tr.classList.add('row-editing');
+    tr.querySelectorAll('td').forEach(function(td) {
+      var field = td.getAttribute('data-field');
+      if (!field || field === 'readonly') return;
+      td.classList.add('editable-cell');
+      var rawVal = '';
+      if (field === 'date')  rawVal = tr.getAttribute('data-raw-date')  || '';
+      if (field === 'memo')  rawVal = tr.getAttribute('data-raw-memo')  || '';
+      if (field === 'note')  rawVal = tr.getAttribute('data-raw-note')  || '';
+      if (field === 'goj')   rawVal = tr.getAttribute('data-raw-goj')   || '';
+      if (field === 'amt')   rawVal = tr.getAttribute('data-raw-amt')   || '';
+      var inp = document.createElement('input');
+      inp.className = 'cell-input';
+      inp.setAttribute('data-field', field);
+      if (field === 'date') { inp.type = 'date'; inp.value = rawVal; }
+      else if (field === 'amt') { inp.type = 'number'; inp.inputMode = 'decimal'; inp.value = rawVal; inp.style.textAlign = 'right'; }
+      else { inp.type = 'text'; inp.value = rawVal; }
+      td.textContent = '';
+      td.appendChild(inp);
+    });
+  }
+
+  /* একটা সারির ইনপুট থেকে ডাটাতে লেখা — আগের সেভ লজিকের হুবহু, শুধু এক সারির জন্য */
+  function _fvApplyRowToItem(tr, item, isCustomer) {
+    var src     = tr.getAttribute('data-src');
+    var histIdx = tr.getAttribute('data-hist-idx');
+    if (!src) return;
+    function getInp(field) {
+      var inp = tr.querySelector('input.cell-input[data-field="' + field + '"]');
+      return inp ? inp.value.trim() : '';
+    }
+    var newDate = getInp('date');
+    var newMemo = getInp('memo');
+    var newNote = getInp('note');
+    var newGoj  = getInp('goj');
+    var newAmt  = parseFloat(getInp('amt'));
+
+    if (src === 'init') {
+      if (newDate) item.date = newDate;
+      if (newMemo !== '') item.memo = newMemo;
+      if (newNote !== '') item.note = newNote;
+      if (newGoj  !== '') item.goj  = newGoj;
+      if (!isNaN(newAmt) && newAmt >= 0) {
+        if (isCustomer) { item.bill = newAmt; }
+        else            { item.baki = newAmt; }
+      }
+    } else if (src === 'init_joma') {
+      if (newDate) item.date = newDate;
+      if (!isNaN(newAmt) && newAmt >= 0) item.joma = newAmt;
+    } else if (src === 'hist' && histIdx !== '') {
+      var hi = parseInt(histIdx);
+      var h  = item.history && item.history[hi];
+      if (!h) return;
+      if (newDate) h.date = newDate;
+      if (newMemo !== '') h.memo = newMemo;
+      if (newNote !== '') h.note = newNote;
+      if (newGoj  !== '') h.goj  = newGoj;
+      if (!isNaN(newAmt) && newAmt >= 0) {
+        if (h.type === 'bokeyoa') {
+          if (isCustomer) h.bill = newAmt;
+          else            h.baki = newAmt;
+        } else if (h.type === 'joma') {
+          h.joma = newAmt;
+        }
+      }
+    }
+  }
+
+  /* সেভ: শুধু এডিটে থাকা সারি(গুলো) সেভ, বাকি টেবিল অপরিবর্তিত */
+  function _fvSaveEditingRows(n, itemId) {
+    var key  = EP_META[n].key;
+    var list = _lsGet(key);
+    var itemIdx = list.findIndex(function(x){ return x.id === itemId; });
+    if (itemIdx < 0) return;
+    var item = list[itemIdx];
+    var isCustomer = EP_META[n].type === 'customer';
+    document.querySelectorAll('#fvDetailBody .fv-excel tbody tr.row-editing').forEach(function(tr) {
+      _fvApplyRowToItem(tr, item, isCustomer);
+    });
+    _fvRecalcBaki(item, isCustomer);
+    _lsSet(key, list);
+    epRender(n);
+    _fbAutoSync();
+    _detailEditActive = false;
+    fvOpenDetail(n, itemId);
+    notifPush('success', 'সারিটি সেভ হয়েছে।');
+  }
+
+  /* বাতিল: কিছু না লিখে টেবিল আবার আঁকা */
+  function _fvCancelRowEdit(n, itemId) {
+    _detailEditActive = false;
+    fvOpenDetail(n, itemId);
+  }
+
+  /* সারির পাশে সেভ ✔ / ডিলিট 🗑️ / বাতিল ✕ — একটা অ্যাকশন-সারি, টেবিলের ঠিক নিচে ভাসমান */
+  function _fvShowRowActions(trs, n, itemId) {
     var wrap = document.querySelector('#fvDetailBody .fv-excel-wrap');
     if (!wrap) return;
-    var table = wrap.querySelector('.fv-excel');
-    if (!table) return;
-
-    if (!_detailEditActive) {
-      /* ── এডিট মোড চালু ── */
-      _detailEditActive = true;
-      btn.classList.add('active');
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-      table.classList.add('edit-mode');
-
-      table.querySelectorAll('tbody tr').forEach(function(tr) {
-        tr.querySelectorAll('td').forEach(function(td) {
-          var field = td.getAttribute('data-field');
-          if (!field || field === 'readonly') return;
-
-          td.classList.add('editable-cell');
-          var rawVal = '';
-          if (field === 'date')  rawVal = tr.getAttribute('data-raw-date')  || '';
-          if (field === 'memo')  rawVal = tr.getAttribute('data-raw-memo')  || '';
-          if (field === 'note')  rawVal = tr.getAttribute('data-raw-note')  || '';
-          if (field === 'goj')   rawVal = tr.getAttribute('data-raw-goj')   || '';
-          if (field === 'amt')   rawVal = tr.getAttribute('data-raw-amt')   || '';
-
-          var inp = document.createElement('input');
-          inp.className = 'cell-input';
-          inp.setAttribute('data-field', field);
-          if (field === 'date') {
-            inp.type = 'date';
-            inp.value = rawVal;
-          } else if (field === 'amt') {
-            inp.type = 'number';
-            inp.inputMode = 'decimal';
-            inp.value = rawVal;
-            inp.style.textAlign = 'right';
-          } else {
-            inp.type = 'text';
-            inp.value = rawVal;
-          }
-          td.textContent = '';
-          td.appendChild(inp);
-        });
-
-        /* মন্তব্য কলামের পরে ডিলিট বাটন সেল যোগ */
-        var delTd = document.createElement('td');
-        delTd.setAttribute('data-field', 'del-btn');
-        var src     = tr.getAttribute('data-src');
-        var histIdx = tr.getAttribute('data-hist-idx');
-        var delBtn  = document.createElement('button');
-        delBtn.className = 'row-del-btn';
-        delBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
-        delBtn.title = 'এই লাইন মুছুন';
-        (function(r, s, hi, n2, iId) {
-          delBtn.onclick = function(e) {
-            e.stopPropagation();
-            _fvDetailDeleteRow(r, s, hi, n2, iId);
-          };
-        })(tr, src, histIdx, n, itemId);
-        delTd.appendChild(delBtn);
-        tr.appendChild(delTd);
-      });
-
-    } else {
-      /* ── সেভ মোড ── */
-      _detailEditActive = false;
-      btn.classList.remove('active');
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-      table.classList.remove('edit-mode');
-
-      var key  = EP_META[n].key;
-      var list = _lsGet(key);
-      var itemIdx = list.findIndex(function(x){ return x.id === itemId; });
-      if (itemIdx < 0) return;
-      var item = list[itemIdx];
-      var isCustomer = EP_META[n].type === 'customer';
-
-      table.querySelectorAll('tbody tr').forEach(function(tr) {
-        /* ডিলিট বাটন সেল সরাই */
-        var delTd = tr.querySelector('td[data-field="del-btn"]');
-        if (delTd) tr.removeChild(delTd);
-
-        var src     = tr.getAttribute('data-src');
-        var histIdx = tr.getAttribute('data-hist-idx');
-        var txnType = tr.getAttribute('data-txn-type');
-        if (!src) return;
-
-        /* input মান পড়ি */
-        function getInp(field) {
-          var inp = tr.querySelector('input.cell-input[data-field="' + field + '"]');
-          return inp ? inp.value.trim() : '';
-        }
-        var newDate = getInp('date');
-        var newMemo = getInp('memo');
-        var newNote = getInp('note');
-        var newGoj  = getInp('goj');
-        var newAmt  = parseFloat(getInp('amt'));
-
-        if (src === 'init') {
-          /* প্রথম/প্রাথমিক এন্ট্রি */
-          if (newDate) item.date = newDate;
-          if (newMemo !== '') item.memo = newMemo;
-          if (newNote !== '') item.note = newNote;
-          if (newGoj  !== '') item.goj  = newGoj;
-          if (!isNaN(newAmt) && newAmt >= 0) {
-            if (isCustomer) { item.bill = newAmt; }
-            else            { item.baki = newAmt; }
-          }
-        } else if (src === 'init_joma') {
-          if (newDate) item.date = newDate;
-          if (!isNaN(newAmt) && newAmt >= 0) item.joma = newAmt;
-        } else if (src === 'hist' && histIdx !== '') {
-          var hi = parseInt(histIdx);
-          var h  = item.history && item.history[hi];
-          if (!h) return;
-          if (newDate) h.date = newDate;
-          if (newMemo !== '') h.memo = newMemo;
-          if (newNote !== '') h.note = newNote;
-          if (newGoj  !== '') h.goj  = newGoj;
-          if (!isNaN(newAmt) && newAmt >= 0) {
-            if (h.type === 'bokeyoa') {
-              if (isCustomer) h.bill = newAmt;
-              else            h.baki = newAmt;
-            } else if (h.type === 'joma') {
-              h.joma = newAmt;
-            }
-          }
-        }
-      });
-
-      /* baki পুনর্গণনা করি সমস্ত history থেকে */
-      if (isCustomer) {
-        var totalBill = item.bill || 0;
-        var totalJoma = item.joma || 0;
-        (item.history || []).forEach(function(h) {
-          if (h.type === 'bokeyoa') totalBill += (h.bill || 0);
-          else if (h.type === 'joma') totalJoma += (h.joma || 0);
-        });
-        item.baki = Math.max(0, totalBill - totalJoma);
-      } else {
-        /* সরবরাহকারী — history থেকে সম্পূর্ণ পুনর্গণনা */
-        if ((item.history||[]).length === 0) {
-          /* history নেই — শুধু init entry আছে, item.baki ইতিমধ্যে সেট হয়েছে */
-        } else {
-          var _initPE = (item.initPawna !== undefined) ? item.initPawna : (item.baki || 0) + (item.joma || 0);
-          var _initJE = item.joma || 0;
-          var totalPawna = _initPE;
-          var totalJomaSup = _initJE;
-          (item.history || []).forEach(function(h) {
-            if (h.type === 'bokeyoa') totalPawna   += (h.baki || 0);
-            else if (h.type === 'joma') totalJomaSup += (h.joma || 0);
-          });
-          item.baki = Math.max(0, totalPawna - totalJomaSup);
-        }
-      }
-
-      _lsSet(key, list);
-      epRender(n);
-      _fbAutoSync();
-      fvOpenDetail(n, itemId);
-      notifPush('success', 'টেবিল এডিট সেভ হয়েছে।');
-    }
+    var old = document.getElementById('fvRowActionBar'); if (old) old.remove();
+    var bar = document.createElement('div');
+    bar.id = 'fvRowActionBar';
+    bar.className = 'fv-row-actionbar';
+    var mkBtn = function(cls, html, title, fn) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = cls; b.title = title; b.innerHTML = html;
+      b.onclick = function(e) { e.stopPropagation(); fn(); };
+      return b;
+    };
+    bar.appendChild(mkBtn('fv-ra-save',   '✔ সেভ',   'সেভ করুন', function() { _fvSaveEditingRows(n, itemId); }));
+    bar.appendChild(mkBtn('fv-ra-cancel', '✕ বাতিল', 'সেভ না করে বের হোন', function() { _fvCancelRowEdit(n, itemId); }));
+    /* ডিলিট: মার্জড সারি ভাঙলে দুটো সারি থাকে — প্রতিটির নিজস্ব ডিলিট বোতাম */
+    trs.forEach(function(tr) {
+      var lbl = tr.getAttribute('data-txn-type') === 'joma' ? '🗑️ জমা মুছুন' : '🗑️ ' + (trs.length > 1 ? 'পাওনা মুছুন' : 'মুছুন');
+      bar.appendChild(mkBtn('fv-ra-del', lbl, 'এই লাইন মুছুন', function() {
+        _fvDetailDeleteRow(tr, tr.getAttribute('data-src'), tr.getAttribute('data-hist-idx'), n, itemId);
+      }));
+    });
+    wrap.parentNode.insertBefore(bar, wrap.nextSibling);
   }
 
+  /* লং-প্রেসে ডাকা হয়: সিক্রেট কী চেয়ে ওই একটা সারি এডিটে নেওয়া */
+  function fvRowEnterEdit(tr, n, itemId) {
+    if (_detailEditActive) return;           /* একসাথে একটাই সারি */
+    if (!tr || tr.getAttribute('data-src') === null) return;
+    /* সিক্রেট কী — আগের মতোই, শুধু এডিট চালুর সময়। বন্ধ/সেভ/বাতিলে লাগে না। */
+    var entered = prompt('টেবিল এডিট করতে সিক্রেট কী দাও:');
+    if (entered === null) return;
+    if (entered !== _FB_SECRET) { alert('❌ ভুল সিক্রেট কী! এডিট করা যাবে না।'); return; }
+
+    _detailEditActive = true;
+    var table = tr.closest('.fv-excel');
+    if (table) table.classList.add('edit-mode');
+    var parts = _fvSplitMergedRow(tr);
+    parts.forEach(function(r) { _fvMakeRowEditable(r, n, itemId); });
+    _fvShowRowActions(parts, n, itemId);
+    try { if (navigator.vibrate) navigator.vibrate(35); } catch (e) {}
+    var first = tr.querySelector('input.cell-input');
+    if (first) { try { first.focus({ preventScroll: true }); } catch (e) {} }
+  }
+
+  /* টেবিল আঁকার পর প্রতিবার লং-প্রেস বেঁধে দেওয়া (fvOpenDetail টেবিল নতুন করে আঁকে) */
+  function fvBindRowLongPress(n, itemId) {
+    var body = document.getElementById('fvDetailBody');
+    var wrap = body && body.querySelector('.fv-excel-wrap');
+    if (!wrap || wrap.__rowLpBound === itemId) return;
+    wrap.__rowLpBound = itemId;
+    wrap.classList.add('lp-zone');
+    var HOLD_MS = 600, MOVE_PX = 10;
+    var timer = null, sx = 0, sy = 0, fired = false, pressedTr = null;
+
+    function cancel() { if (timer) { clearTimeout(timer); timer = null; } }
+    function rowOf(target) {
+      var tr = target && target.closest ? target.closest('tbody tr') : null;
+      return (tr && tr.hasAttribute('data-src')) ? tr : null;   /* "কোনো লেনদেন নেই" সারি বাদ */
+    }
+    function start(x, y, target) {
+      if (_detailEditActive) return;                 /* এডিটে থাকলে নতুন লং-প্রেস নয় */
+      if (target && target.closest && target.closest('input, button')) return;
+      var tr = rowOf(target); if (!tr) return;
+      fired = false; sx = x; sy = y; pressedTr = tr; cancel();
+      timer = setTimeout(function() {
+        timer = null; fired = true;
+        fvRowEnterEdit(pressedTr, n, itemId);
+      }, HOLD_MS);
+    }
+    function move(x, y) { if (timer && (Math.abs(x - sx) > MOVE_PX || Math.abs(y - sy) > MOVE_PX)) cancel(); }
+
+    wrap.addEventListener('touchstart', function(e) {
+      if (e.touches.length !== 1) { cancel(); return; }
+      var t = e.touches[0]; start(t.clientX, t.clientY, e.target);
+    }, { passive: true });
+    wrap.addEventListener('touchmove', function(e) { var t = e.touches[0]; if (t) move(t.clientX, t.clientY); }, { passive: true });
+    wrap.addEventListener('touchend', cancel, { passive: true });
+    wrap.addEventListener('touchcancel', cancel, { passive: true });
+    wrap.addEventListener('mousedown', function(e) { if (e.button === 0) start(e.clientX, e.clientY, e.target); });
+    wrap.addEventListener('mousemove', function(e) { move(e.clientX, e.clientY); });
+    wrap.addEventListener('mouseup', cancel);
+    wrap.addEventListener('mouseleave', cancel);
+    wrap.addEventListener('contextmenu', function(e) { if (!_detailEditActive) e.preventDefault(); });
+    wrap.addEventListener('click', function(e) { if (fired) { e.stopPropagation(); e.preventDefault(); fired = false; } }, true);
+  }
+  window.fvBindRowLongPress = fvBindRowLongPress;
+  window.fvRowEnterEdit = fvRowEnterEdit;
 
 </script>
 
@@ -7174,8 +7528,15 @@ body #pk-body #validation-error {
         <div class="settings-group">
           <div class="card">
             <div class="card-head">
-              <span class="card-title"><svg aria-hidden="true" focusable="false" style="width:20px;height:20px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M21 32.167V42.5h-7.333c-3.406 0-6.167-1.761-6.167-5.167s2.76-5.166 6.167-5.166h14.5c6.811 0 12.333-6.523 12.333-13.334S34.978 5.5 28.167 5.5h-14.5A6.167 6.167 0 0 0 7.5 11.666v25.666" /></svg> আনুমানিত COGS</span>
+              <span class="card-title"><svg aria-hidden="true" focusable="false" style="width:20px;height:20px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M21 32.167V42.5h-7.333c-3.406 0-6.167-1.761-6.167-5.167s2.76-5.166 6.167-5.166h14.5c6.811 0 12.333-6.523 12.333-13.334S34.978 5.5 28.167 5.5h-14.5A6.167 6.167 0 0 0 7.5 11.666v25.666" /></svg> স্টক ও আনুমানিত COGS</span>
               
+            </div>
+            <div class="frow">
+              <span class="flabel">ক্রয়কৃত গজ</span>
+              <div class="finput-wrap">
+                <input type="number" id="stockInYard" aria-label="ক্রয়কৃত গজ" placeholder="0" inputmode="decimal">
+                <span class="funit">গজ</span>
+              </div>
             </div>
             <div class="frow">
               <span class="flabel">বিক্রিত গজ</span>
@@ -7197,6 +7558,8 @@ body #pk-body #validation-error {
             </div>
           </div>
         </div>
+
+      </div><!-- /step2 -->
 
       <!-- STEP 3: SALES & PURCHASE -->
       <div id="validation-error" style="display:none;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.22);border-radius:10px;padding:11px 14px;margin-bottom:10px;font-size:13px;color:#b91c1c;font-weight:600;line-height:1.5;"></div>
@@ -7274,7 +7637,7 @@ body #pk-body #validation-error {
 </svg> হিসাব করুন
           </button>
         </div>
-      </div>
+      </div><!-- /step3 -->
 
     </div><!-- /page-calc -->
 
@@ -8010,6 +8373,17 @@ body #pk-body #validation-error {
       setTimeout(() => { errEl.style.display = 'none'; }, 4000);
       return;
     }
+    /* ক্রয়ের টাকা থাকলে ক্রয়কৃত গজ বাধ্যতামূলক */
+    const purchaseMoneyVal = n(document.getElementById('cashPurchase').value) + n(document.getElementById('creditPurchase').value);
+    const stockInYardVal   = n(document.getElementById('stockInYard').value);
+    if (purchaseMoneyVal > 0 && stockInYardVal <= 0) {
+      const errEl = document.getElementById('validation-error');
+      errEl.textContent = '⚠️ ক্রয়ের টাকা দিয়েছ, তাই Stock ধাপে ক্রয়কৃত গজ পূরণ করুন।';
+      errEl.style.display = 'block';
+      goStep(2);
+      setTimeout(() => { errEl.style.display = 'none'; }, 4000);
+      return;
+    }
     document.getElementById('validation-error').style.display = 'none';
     const cashSale      = n($('cashSale').value);
     const creditSale    = n($('creditSale').value);
@@ -8244,6 +8618,8 @@ body #pk-body #validation-error {
     window._lastFixed   = fixedExp;
     window._lastZakat   = zakat;
     window._lastCogs    = cogs;
+    window._lastStockInYard  = n($('stockInYard').value);
+    window._lastStockOutYard = n($('soldGaj').value); /* Out Stock = বিক্রিত গজ */
 
     /* Navigate to result page */
     goToPage('result');
@@ -8277,10 +8653,19 @@ body #pk-body #validation-error {
     }, 50);
   }
 
+  /* ধাপ (১=খরচ, ২=স্টক, ৩=বিক্রি ও ক্রয়) — একই পাতায় পরপর সাজানো, তাই সংশ্লিষ্ট অংশে স্ক্রল করা হয় */
+  function goStep(step) {
+    var el = document.getElementById('step' + step);
+    if (!el) return;
+    try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    catch (e) { el.scrollIntoView(); }
+  }
+
   function resetWeekly() {
     ['soldGaj','profitGaj',
      'cashSale','creditSale','oldCollection',
      'cashPurchase','creditPurchase','oldDebt',
+     'stockInYard',
      'salary','ownerSalary','transport','vehicle','misc'
     ].forEach(id => { const el=$(id); if(el) el.value=''; });
     $('estProfitAuto').textContent  = '—';
@@ -8316,6 +8701,8 @@ body #pk-body #validation-error {
     var cashPurchase= e.cashPurchase !== undefined ? e.cashPurchase : cashOut;
     var oldDebt     = e.oldDebt || 0;
     var zakat       = e.zakat   || 0;
+    var stockInYard  = e.stockInYard  || 0;
+    var stockOutYard = e.stockOutYard || 0;
 
     var kpiPC = $('kpiProfitCard');
     if (kpiPC) kpiPC.className = 'kpi-card ' + (netProfit >= 0 ? 'kpi-profit' : 'kpi-loss');
@@ -8357,6 +8744,8 @@ body #pk-body #validation-error {
     window._lastFixed   = fixedExp;
     window._lastCogs    = cogs;
     window._lastZakat   = zakat;
+    window._lastStockInYard  = stockInYard;
+    window._lastStockOutYard = stockOutYard;
 
     /* ══ চারটা ট্যাবের accordion টোটাল — সেভ করা সামারি ডাটা থেকে যতটা সম্ভব পূরণ,
        যাতে সংরক্ষিত রিপোর্ট খুললে টেবিল একদম ফাঁকা না থাকে।
@@ -8454,6 +8843,8 @@ body #pk-body #validation-error {
         fixed:   Math.round(window._lastFixed   || 0),
         cogs:    Math.round(window._lastCogs    || 0),
         zakat:   Math.round(window._lastZakat   || 0),
+        stockInYard:  window._lastStockInYard  || 0,
+        stockOutYard: window._lastStockOutYard || 0,
       };
       const idx = data.findIndex(e => e.year === entry.year && e.week === entry.week);
       if (idx >= 0) { data[idx] = entry; } else { data.push(entry); }
@@ -9308,7 +9699,9 @@ window.PK = {
   saveChartData:        typeof saveChartData        !== 'undefined' ? saveChartData        : function(){},
   renderReportTable:    typeof renderReportTable    !== 'undefined' ? renderReportTable    : function(){},
   renderCashflowPie:    typeof renderCashflowPie   !== 'undefined' ? renderCashflowPie    : function(){},
-  autoFillWeeklyCreditFields: typeof autoFillWeeklyCreditFields !== 'undefined' ? autoFillWeeklyCreditFields : function(){}
+  autoFillWeeklyCreditFields: typeof autoFillWeeklyCreditFields !== 'undefined' ? autoFillWeeklyCreditFields : function(){},
+  updateTotalSale:      typeof updateTotalSale      !== 'undefined' ? updateTotalSale      : function(){},
+  updateEstCOGS:        typeof updateEstCOGS        !== 'undefined' ? updateEstCOGS        : function(){}
 };
 window.PK._open = function(section) {
   try {
@@ -11190,9 +11583,11 @@ function openPLTrends() {
   var el = document.getElementById('plTrendsOverlay');
   el.style.display = 'flex';
   document.body.style.overflow = 'hidden';
+  attachLongPress('plR-chartBox', plToggleDelMode);
   plRenderRevenueBarChart();
 }
 function closePLTrends() {
+  if (window._plDelMode) plSetDelMode(false);
   document.getElementById('plTrendsOverlay').style.display = 'none';
   document.body.style.overflow = '';
 }
@@ -11268,20 +11663,15 @@ function plRenderRevenueBarChart() {
 }
 
 /* ── ডিলিট মুড টগল — P&L Trends ── */
-function plToggleDelMode() {
-  window._plDelMode = !window._plDelMode;
-  var btn = document.getElementById('plDelModeBtn');
-  if (btn) {
-    if (window._plDelMode) {
-      btn.textContent = 'ডিলিট মুড বন্ধ করুন';
-      btn.classList.add('del-mode-active');
-    } else {
-      btn.textContent = 'ডিলিট মুড';
-      btn.classList.remove('del-mode-active');
-    }
-  }
+function plSetDelMode(on) {
+  window._plDelMode = !!on;
+  var bar = document.getElementById('plDelDoneBar');
+  if (bar) bar.style.display = on ? 'inline-block' : 'none';
+  var zone = document.getElementById('plR-chartBox');
+  if (zone) zone.classList.toggle('del-active', !!on);
   plRenderRevenueBarChart();
 }
+function plToggleDelMode() { plSetDelMode(!window._plDelMode); }
 window.plToggleDelMode = plToggleDelMode;
 
 /* ── P&L Trends চার্ট থেকে একটি সপ্তাহের ইন্ডিকেটর ডিলিট করা ── */
@@ -11869,7 +12259,7 @@ function aggOvRender() {
   }
   emptyEl.style.display = 'none'; tableEl.style.display = 'block';
   var sorted = data.slice().sort(function(a, b) { return b.ts - a.ts; });
-  var sumSales=0, sumGross=0, sumNet=0, sumIn=0, sumOut=0;
+  var sumInStock=0, sumOutStock=0, sumGross=0, sumNet=0, sumIn=0, sumOut=0;
   function fmt(v) {
     if (v===undefined||v===null) return '—';
     var abs=Math.abs(v);
@@ -11877,40 +12267,53 @@ function aggOvRender() {
     var s=Math.round(abs).toLocaleString('en-IN');
     return (v<0?'−':'')+'৳'+s;
   }
+  function fmtGaj(v) {
+    var x = Math.round((v||0)*100)/100;
+    return x.toLocaleString('en-IN') + ' গজ';
+  }
   var rows='';
   sorted.forEach(function(e) {
-    var sales=e.sales||0, gross=e.gross!==undefined?e.gross:(e.net||0), net=e.net||0, cashIn=e.cashIn||0, cashOut=e.cashOut||0;
-    sumSales+=sales; sumGross+=gross; sumNet+=net; sumIn+=cashIn; sumOut+=cashOut;
-    rows+='<tr><td>'+(e.label||'—')+'</td>'
-      +'<td class="agg-td-sales">'+fmt(sales)+'</td>'
-      +'<td class="'+(net>=0?'agg-td-net-pos':'agg-td-net-neg')+'">'+fmt(net)+'</td>'
-      +'<td class="agg-td-gross">'+fmt(gross)+'</td>'
-      +'<td class="agg-td-in">'+fmt(cashIn)+'</td>'
-      +'<td class="agg-td-out">'+fmt(cashOut)+'</td>'
-      +'<td style="text-align:center;">'+(window._aggDelMode ? (
+    var inStock=e.stockInYard||0, outStock=e.stockOutYard||0, gross=e.gross!==undefined?e.gross:(e.net||0), net=e.net||0, cashIn=e.cashIn||0, cashOut=e.cashOut||0;
+    sumInStock+=inStock; sumOutStock+=outStock; sumGross+=gross; sumNet+=net; sumIn+=cashIn; sumOut+=cashOut;
+    rows+='<tr>'
+      +'<td class="agg-del-col">'+(window._aggDelMode ? (
         '<button type="button" onclick="aggOvDeleteRow('+e.ts+')" '
         +'style="border:none;background:transparent;color:#c0392b;cursor:pointer;font-size:16px;line-height:1;padding:4px 6px;" '
         +'title="মুছে ফেলুন" aria-label="মুছে ফেলুন">🗑️</button>'
-      ) : '')+'</td></tr>';
+      ) : '')+'</td>'
+      +'<td>'+(e.label||'—')+'</td>'
+      +'<td class="agg-td-stock">'+fmtGaj(inStock)+'</td>'
+      +'<td class="agg-td-stock">'+fmtGaj(outStock)+'</td>'
+      +'<td class="'+(net>=0?'agg-td-net-pos':'agg-td-net-neg')+'">'+fmt(net)+'</td>'
+      +'<td class="agg-td-gross">'+fmt(gross)+'</td>'
+      +'<td class="agg-td-in">'+fmt(cashIn)+'</td>'
+      +'<td class="agg-td-out">'+fmt(cashOut)+'</td></tr>';
   });
   tbody.innerHTML=rows;
   function setFoot(id,v,cls){ var el=document.getElementById(id); if(!el)return; el.textContent=fmt(v); el.className=cls; }
-  setFoot('aggOvTSales',sumSales,'agg-td-sales');
+  function setFootGaj(id,v,cls){ var el=document.getElementById(id); if(!el)return; el.textContent=fmtGaj(v); el.className=cls; }
+  setFootGaj('aggOvTInStock', sumInStock, 'agg-td-stock');
+  setFootGaj('aggOvTOutStock',sumOutStock,'agg-td-stock');
   setFoot('aggOvTNet',  sumNet,  sumNet>=0?'agg-td-net-pos':'agg-td-net-neg');
   setFoot('aggOvTGross',sumGross,'agg-td-gross');
   setFoot('aggOvTIn',   sumIn,  'agg-td-in');
   setFoot('aggOvTOut',  sumOut, 'agg-td-out');
   if (subEl) subEl.textContent=sorted.length+' সপ্তাহের ডাটা';
-  /* ── ড্যাশবোর্ডের full-size Aggregate Report কার্ড (আগের ক্যালেন্ডার কার্ডের জায়গায়) — চলতি সপ্তাহের In Flow/বহির্গমন ── */
+  /* ── ড্যাশবোর্ডের full-size Aggregate Report কার্ড (আগের ক্যালেন্ডার কার্ডের জায়গায়) — চলতি সপ্তাহের In Stock/Out Stock (গজ) ── */
+  function fmtYard(v) {
+    if (v===undefined||v===null) return '—';
+    var s = (Math.round((v||0)*100)/100).toLocaleString('en-IN');
+    return s + ' Yard';
+  }
   function setStat(id, v, isLoss) {
     var el = document.getElementById(id);
     if (!el) return;
-    el.textContent = fmt(v);
+    el.textContent = fmtYard(v);
     el.classList.toggle('is-loss', !!isLoss);
   }
   var curWeek = sorted[0] || {};
-  setStat('aggFullIn',  curWeek.cashIn  || 0, false);
-  setStat('aggFullOut', curWeek.cashOut || 0, false);
+  setStat('aggFullIn',  curWeek.stockInYard  || 0, false);
+  setStat('aggFullOut', curWeek.stockOutYard || 0, false);
   /* card-এর count আপডেট */
   var cardSub = document.getElementById('aggOvCardSub');
   if (cardSub) cardSub.textContent = sorted.length + ' সপ্তাহের ডাটা';
@@ -11918,21 +12321,71 @@ function aggOvRender() {
 window.aggOvRender = aggOvRender;
 
 /* ── ডিলিট মুড টগল — Aggregate Report ── */
-function aggOvToggleDelMode() {
-  window._aggDelMode = !window._aggDelMode;
-  var btn = document.getElementById('aggOvDelModeBtn');
-  if (btn) {
-    if (window._aggDelMode) {
-      btn.textContent = 'ডিলিট মুড বন্ধ করুন';
-      btn.classList.add('del-mode-active');
-    } else {
-      btn.textContent = 'ডিলিট মুড';
-      btn.classList.remove('del-mode-active');
-    }
-  }
+function aggOvSetDelMode(on) {
+  window._aggDelMode = !!on;
+  var bar = document.getElementById('aggOvDelDoneBar');
+  if (bar) bar.style.display = on ? 'inline-block' : 'none';
+  var zone = document.getElementById('aggOvTableWrap');
+  if (zone) zone.classList.toggle('del-active', !!on);
   aggOvRender();
 }
+function aggOvToggleDelMode() { aggOvSetDelMode(!window._aggDelMode); }
 window.aggOvToggleDelMode = aggOvToggleDelMode;
+
+/* ══ লং-প্রেস ইঞ্জিন — Aggregate টেবিল ও P&L গ্রাফ, দুই জায়গায় একই আচরণ ══
+   নিয়ম: ~৬০০ms চেপে ধরলে ডিলিট মুড টগল। আঙুল ১০px-এর বেশি নড়লে (স্ক্রল) বাতিল।
+   ডিলিট মুডে ভেতরের 🗑️ / × চাপলে সপ্তাহ মুছবে — সেগুলোতে লং-প্রেস ধরা হয় না। */
+function attachLongPress(zoneId, onLongPress) {
+  var zone = document.getElementById(zoneId);
+  if (!zone || zone.__lpBound) return;
+  zone.__lpBound = true;
+  var HOLD_MS = 600, MOVE_PX = 10;
+  var timer = null, sx = 0, sy = 0, fired = false;
+
+  function isDeleteControl(t) {
+    /* ডিলিট মুডের নিজস্ব বোতামে লং-প্রেস গণ্য নয় */
+    return !!(t && t.closest && t.closest('button, .pl-del-btn'));
+  }
+  function cancel() { if (timer) { clearTimeout(timer); timer = null; } }
+
+  function start(x, y, target) {
+    if (isDeleteControl(target)) return;
+    fired = false; sx = x; sy = y; cancel();
+    timer = setTimeout(function () {
+      timer = null; fired = true;
+      try { if (navigator.vibrate) navigator.vibrate(35); } catch (e) {}
+      onLongPress();
+    }, HOLD_MS);
+  }
+  function move(x, y) {
+    if (timer && (Math.abs(x - sx) > MOVE_PX || Math.abs(y - sy) > MOVE_PX)) cancel();
+  }
+
+  /* টাচ (ফোন) */
+  zone.addEventListener('touchstart', function (e) {
+    if (e.touches.length !== 1) { cancel(); return; }
+    var t = e.touches[0]; start(t.clientX, t.clientY, e.target);
+  }, { passive: true });
+  zone.addEventListener('touchmove', function (e) {
+    var t = e.touches[0]; if (t) move(t.clientX, t.clientY);
+  }, { passive: true });
+  zone.addEventListener('touchend', cancel, { passive: true });
+  zone.addEventListener('touchcancel', cancel, { passive: true });
+
+  /* মাউস (ডেস্কটপ) */
+  zone.addEventListener('mousedown', function (e) { if (e.button === 0) start(e.clientX, e.clientY, e.target); });
+  zone.addEventListener('mousemove', function (e) { move(e.clientX, e.clientY); });
+  zone.addEventListener('mouseup', cancel);
+  zone.addEventListener('mouseleave', cancel);
+
+  /* লং-প্রেসের পর ব্রাউজারের কপি/শেয়ার মেনু আটকানো */
+  zone.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  /* লং-প্রেস ঘটে যাওয়ার পর আঙুল তুললে যে 'click' আসে সেটা গিলে ফেলা — নইলে নিচের সারি/বারে ভুল ট্যাপ হতো */
+  zone.addEventListener('click', function (e) {
+    if (fired) { e.stopPropagation(); e.preventDefault(); fired = false; }
+  }, true);
+}
+window.attachLongPress = attachLongPress;
 
 /* ── Aggregate Report টেবিল থেকে একটি সপ্তাহ/লাইন ডিলিট করা ── */
 function aggOvDeleteRow(ts) {
@@ -11963,9 +12416,11 @@ document.addEventListener('DOMContentLoaded', function() {
 function aggOverlayOpen() {
   document.getElementById('aggOverlay').style.display = 'flex';
   document.body.style.overflow = 'hidden';
+  attachLongPress('aggOvTableWrap', aggOvToggleDelMode);
   aggOvRender();
 }
 function aggOverlayClose() {
+  if (window._aggDelMode) aggOvSetDelMode(false);
   document.getElementById('aggOverlay').style.display = 'none';
   document.body.style.overflow = '';
 }
